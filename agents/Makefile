@@ -118,7 +118,7 @@ backend: deploy
 # Set up development environment resources using Terraform
 setup-dev-env:
 	PROJECT_ID=$$(gcloud config get-value project) && \
-	(cd deployment/terraform/dev && terraform init && terraform apply --var-file vars/env.tfvars --var dev_project_id=$$PROJECT_ID --auto-approve)
+	(cd ../deployment/terraform/dev && terraform init && terraform apply --var-file vars/env.tfvars --var dev_project_id=$$PROJECT_ID --auto-approve)
 
 # ==============================================================================
 # Testing & Code Quality

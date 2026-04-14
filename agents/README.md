@@ -11,14 +11,14 @@ agents/
 │   ├── agent.py               # Main agent logic
 │   ├── fast_api_app.py        # FastAPI Backend server
 │   └── app_utils/             # App utilities and helpers
-├── .cloudbuild/               # CI/CD pipeline configurations for Google Cloud Build
-├── deployment/                # Infrastructure and deployment scripts
 ├── notebooks/                 # Jupyter notebooks for prototyping and evaluation
 ├── tests/                     # Unit, integration, and load tests
 ├── GEMINI.md                  # AI-assisted development guide
 ├── Makefile                   # Development commands
 └── pyproject.toml             # Project dependencies
 ```
+
+Note: CI/CD configurations (`.cloudbuild/`) and Infrastructure scripts (`deployment/`) have been moved to the project root for monorepo management.
 
 > 💡 **Tip:** Use [Gemini CLI](https://github.com/google-gemini/gemini-cli) for AI-assisted development - project context is pre-configured in `GEMINI.md`.
 

@@ -20,7 +20,7 @@ steps:
     args:
       - "-c"
       - |
-        VERSION=$(awk -F'"' '/^version = / {print $$2}' pyproject.toml || echo '0.0.0')
+        cd agents && VERSION=$(awk -F'"' '/^version = / {print $$2}' pyproject.toml || echo '0.0.0')
         echo "$${VERSION}" > /workspace/agent_version.txt
   # Build and Push
   - name: "gcr.io/cloud-builders/docker"
@@ -33,7 +33,9 @@ steps:
         "COMMIT_SHA=$COMMIT_SHA",
         "--build-arg",
         "AGENT_VERSION=$(cat /workspace/agent_version.txt || echo '0.0.0')",
-        ".",
+        "-f",
+        "agents/Dockerfile",
+        "agents/",
       ]
   - name: "gcr.io/cloud-builders/docker"
     args:
@@ -86,7 +88,7 @@ steps:
         export _ID_TOKEN=$(cat id_token.txt)
         export _STAGING_URL=$(cat staging_url.txt)
         pip install locust==2.31.1 a2a-sdk~=0.3.22 --user
-        locust -f tests/load_test/load_test.py \
+        cd agents && locust -f tests/load_test/load_test.py \
         --headless \
         -H $$_STAGING_URL \
         -t 30s -u 10 -r 0.5 \
@@ -103,7 +105,7 @@ steps:
       - "-c"
       - |
         export _TIMESTAMP=$(date +%Y%m%d-%H%M%S)
-        gsutil -m cp -r tests/load_test/.results gs://${_LOGS_BUCKET_NAME_STAGING}/load-test-results/results-$${_TIMESTAMP}
+        cd agents && gsutil -m cp -r tests/load_test/.results gs://${_LOGS_BUCKET_NAME_STAGING}/load-test-results/results-$${_TIMESTAMP}
         echo "_________________________________________________________________________"
         echo "Load test results copied to gs://${_LOGS_BUCKET_NAME_STAGING}/load-test-results/results-$${_TIMESTAMP}"
         echo "HTTP link: https://console.cloud.google.com/storage/browser/${_LOGS_BUCKET_NAME_STAGING}/load-test-results/results-$${_TIMESTAMP}"
