@@ -38,3 +38,15 @@ repos:
         language: system
         types: [ rust ]
         pass_filenames: false
+      - id: go-fmt
+        name: go-fmt
+        entry: bash -c "cd adexchange && go fmt ./..."
+        language: system
+        types: [ go ]
+        pass_filenames: false
+      - id: go-unit-tests
+        name: go-unit-tests
+        entry: bash -c "cd adexchange && go test ./..."
+        language: system
+        types: [ go ]
+        pass_filenames: false

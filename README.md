@@ -1,17 +1,69 @@
 # Deespee
 
-Demand-Side Platform (DSP) integrated with Data Management Platform (DMP) and AI Agents.
+Demand-Side Platform (DSP) integrated with Data Management Platform (DMP) and AI Agents for Real-Time Bidding (RTB) optimization.
+
+## 🏗️ Architecture
+
+```text
+                                     +---------------------------+
+                                     |      USER INTERFACE       |
+                                     |   (Agent Playground / UI) |
+                                     +-------------+-------------+
+                                                   |
+                                     +-------------v-------------+
+                                     |      AI AGENT (BRAIN)     |
+                                     |    (Python / ADK Hub)     |
+                                     +------+------+-------+-----+
+                                            |      |       |
+                 +--------------------------+      |       +--------------------------+
+                 |                                 |                                  |
+    +------------v------------+      +-------------v-------------+      +-------------v------------+
+    |   CAMPAIGN ANALYTICS    |      |    STRATEGY & BIDDING     |      |    AUDIENCE SEGMENTS     |
+    |      (BigQuery)         |      |      (DSP - Rust)         |      |      (DMP - Rust)        |
+    +------------^------------+      +-------------+-------------+      +-------------+------------+
+                 |                                 |                                  |
+                 |                                 |          (Hot Path Lookup)       |
+                 |                   +-------------v-------------+                    |
+                 |                   |    REAL-TIME DATA STORE   |                    |
+                 +-------------------+    (Firestore / Redis)    <--------------------+
+                                     +-------------^-------------+
+                                                   |
+                                     +-------------+-------------+
+                                     |    PUBSUB EVENT BUS       |
+                                     |  (Wins / Clicks / Loss)   |
+                                     +-------------^-------------+
+                                                   |
+                 +---------------------------------+----------------------------------+
+                 |                                                                    |
+    +------------+------------+                                         +-------------+------------+
+    |   AD EXCHANGE (GO)      |                                         |      MOCK WEBSITE        |
+    |  (Traffic Simulator)    <-----------------------------------------+   (SSP / Publisher)      |
+    +-------------------------+                                         +--------------------------+
+```
+
+> **Note on Storage:** For this demo, we use **Firestore** for simplicity and scale-to-zero. In a production RTB environment with <10ms requirements, **Google Cloud Memorystore (Redis)** is used for the hot path lookup between DSP and DMP.
 
 ## Project Structure
 
 This is a monorepo containing multiple components:
 
-- **`agents/`**: AI Agents powered by Google ADK (Python).
-- **`dsp/`**: Demand-Side Platform (Upcoming Rust implementation).
-- **`dmp/`**: Data Management Platform (Upcoming Rust implementation).
-- **`shared/`**: Shared data contracts and schemas (Protobuf/JSON Schema).
-- **`deployment/`**: Unified infrastructure management using Terraform.
-- **`.cloudbuild/`**: CI/CD pipeline configurations for Google Cloud Build.
+- **`agents/`**: AI Agents powered by Google ADK (Python). Responsible for campaign strategy and optimization.
+- **`dsp/`**: High-performance Demand-Side Platform (Rust). Handles millisecond-latency bidding.
+- **`dmp/`**: Data Management Platform (Rust). Manages user profiles and audience segments.
+- **`adexchange/`**: Ad Exchange Simulator (Go). Generates bid requests and simulates traffic.
+- **`shared/`**: Shared Protobuf schemas for cross-service communication.
+- **`deployment/`**: Infrastructure as Code (Terraform) for GCP.
+
+## Key RTB Components
+
+### 1. The Hot Path (Bidding)
+The DSP receives bid requests from an exchange. It performs a sub-millisecond lookup in **Redis** (managed by the DMP) to identify the user's segments and decides whether to bid.
+
+### 2. The Feedback Loop
+All win/loss notifications and clicks are streamed via **Pub/Sub** into **BigQuery**.
+
+### 3. The Optimization Loop (AI Agent)
+The AI Agent queries BigQuery to analyze campaign performance (CTR, Spend, Win Rate). It then "optimizes" the campaign by updating the DMP's segments or the DSP's bidding strategy.
 
 ## Getting Started
 

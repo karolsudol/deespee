@@ -27,13 +27,19 @@ dsp-run:
 	@echo "Running DSP service..."
 	cd dsp && cargo run
 
+run-exchange:
+	@echo "Running Ad Exchange Simulator (Go)..."
+	cd adexchange && go run main.go
+
 # --- Global Commands ---
 
 install:
 	@echo "Installing dependencies and setting up 'uv' virtual environment for agents..."
 	cd agents && $(MAKE) install
 	@echo "Setting up Rust components (DSP/DMP)..."
-	# Rust components use standard cargo, which handles its own environments
+	# Rust components use standard cargo
+	@echo "Setting up Go components (Ad Exchange)..."
+	cd adexchange && go mod tidy
 
 test: agents-test dsp-test dmp-test
 
