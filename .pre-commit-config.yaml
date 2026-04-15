@@ -34,7 +34,7 @@ repos:
         exclude: ^agents/app/proto/.*$
       - id: rustfmt
         name: rustfmt
-        entry: bash -c "cd dsp && cargo fmt -- --check && cd ../dmp && cargo fmt -- --check"
+        entry: bash -c "cargo fmt --all -- --check"
         language: system
         types: [ rust ]
         pass_filenames: false
