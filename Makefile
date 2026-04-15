@@ -17,6 +17,16 @@ help:
 	@echo "  make dsp-test       Run tests for the DSP component (Rust)"
 	@echo "  make dmp-test       Run tests for the DMP component (Rust)"
 
+# --- Local Development ---
+
+local-infra:
+	@echo "Starting local infrastructure (Pub/Sub Emulator)..."
+	docker-compose up -d
+
+dsp-run:
+	@echo "Running DSP service..."
+	cd dsp && cargo run
+
 # --- Global Commands ---
 
 install:

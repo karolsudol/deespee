@@ -59,6 +59,8 @@ variable "app_sa_roles" {
     "roles/logging.logWriter",
     "roles/cloudtrace.agent",
     "roles/storage.admin",
+    "roles/pubsub.publisher",
+    "roles/pubsub.subscriber",
     "roles/serviceusage.serviceUsageConsumer",
   ]
 }

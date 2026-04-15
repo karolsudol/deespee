@@ -27,7 +27,7 @@ import google.auth
 
 _, project_id = google.auth.default()
 os.environ["GOOGLE_CLOUD_PROJECT"] = project_id
-os.environ["GOOGLE_CLOUD_LOCATION"] = "global"
+os.environ["GOOGLE_CLOUD_LOCATION"] = os.getenv("GOOGLE_CLOUD_REGION", "global")
 os.environ["GOOGLE_GENAI_USE_VERTEXAI"] = "True"
 
 
@@ -76,17 +76,45 @@ def request_user_input(message: str) -> dict:
     return {"status": "pending", "message": message}
 
 
+import os
+import google.auth
+from google.cloud import pubsub_v1
+from app.proto import messages_pb2
+import uuid
+
+_, project_id = google.auth.default()
+
+def trigger_dsp_request(query: str) -> str:
+    """Triggers a DSP bidding process for a given query.
+    
+    Args:
+        query: The search or targeting query to process.
+    """
+    publisher = pubsub_v1.PublisherClient()
+    topic_path = publisher.topic_path(project_id, "agent-requests")
+    
+    request = messages_pb2.AgentRequest()
+    request.request_id = str(uuid.uuid4())
+    request.query = query
+    
+    data = request.SerializeToString()
+    future = publisher.publish(topic_path, data)
+    message_id = future.result()
+    
+    return f"DSP request triggered with ID: {request.request_id} (PubSub Message ID: {message_id})"
+
 root_agent = Agent(
     name="root_agent",
     model=Gemini(
         model="gemini-3-flash-preview",
         retry_options=types.HttpRetryOptions(attempts=3),
     ),
-    description="An agent that can provide information about the weather and time.",
-    instruction="You are a helpful AI assistant designed to provide accurate and useful information.",
+    description="An agent that can provide information about the weather, time, and trigger DSP bidding.",
+    instruction="You are a helpful AI assistant designed to provide accurate and useful information. You can also trigger advertising DSP requests.",
     tools=[
         get_weather,
         get_current_time,
+        trigger_dsp_request,
         LongRunningFunctionTool(func=request_user_input),
     ],
 )

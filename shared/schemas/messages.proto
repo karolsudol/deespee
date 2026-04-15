@@ -1,0 +1,30 @@
+syntax = "proto3";
+
+package deespee;
+
+message AgentRequest {
+  string request_id = 1;
+  string query = 2;
+  map<string, string> metadata = 3;
+}
+
+message AgentResponse {
+  string request_id = 1;
+  string content = 2;
+  bool success = 3;
+  string error_message = 4;
+}
+
+message DspAction {
+  string action_id = 1;
+  string agent_request_id = 2;
+  string type = 3;
+  string payload = 4;
+}
+
+message DmpUpdate {
+  string update_id = 1;
+  string agent_request_id = 2;
+  string key = 3;
+  string value = 4;
+}

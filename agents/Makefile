@@ -89,8 +89,11 @@ build-inspector-if-needed:
 # Backend Deployment Targets
 # ==============================================================================
 
+# Default region if not provided
+REGION ?= europe-west4
+
 # Deploy the agent remotely
-# Usage: make deploy [IAP=true] [PORT=8080] - Set IAP=true to enable Identity-Aware Proxy, PORT to specify container port
+# Usage: make deploy [IAP=true] [PORT=8080] [REGION=europe-west4]
 deploy:
 	PROJECT_ID=$$(gcloud config get-value project) && \
 	PROJECT_NUMBER=$$(gcloud projects describe $$PROJECT_ID --format="value(projectNumber)") && \
@@ -98,15 +101,16 @@ deploy:
 		--source . \
 		--memory "4Gi" \
 		--project $$PROJECT_ID \
-		--region "europe-west4" \
+		--region "$(REGION)" \
 		--no-allow-unauthenticated \
 		--no-cpu-throttling \
 		--labels "created-by=adk" \
-		--update-build-env-vars "AGENT_VERSION=$(shell awk -F'"' '/^version = / {print $$2}' pyproject.toml || echo '0.0.0')" \
+		--update-build-env-vars "AGENT_VERSION=$(shell awk -F'\"' '/^version = / {print $$2}' pyproject.toml || echo '0.0.0')" \
 		--update-env-vars \
-		"APP_URL=https://agents-$$PROJECT_NUMBER.europe-west4.run.app" \
+		"APP_URL=https://agents-$$PROJECT_NUMBER.$(REGION).run.app" \
 		$(if $(IAP),--iap) \
 		$(if $(PORT),--port=$(PORT))
+
 
 # Alias for 'make deploy' for backward compatibility
 backend: deploy
@@ -176,6 +180,6 @@ register-gemini-enterprise:
 	@PROJECT_ID=$$(gcloud config get-value project 2>/dev/null) && \
 	PROJECT_NUMBER=$$(gcloud projects describe $$PROJECT_ID --format="value(projectNumber)" 2>/dev/null) && \
 	uvx agent-starter-pack@0.41.0 register-gemini-enterprise \
-		--agent-card-url="https://agents-$$PROJECT_NUMBER.europe-west4.run.app/a2a/app/.well-known/agent-card.json" \
+		--agent-card-url="https://agents-$$PROJECT_NUMBER.$(REGION).run.app/a2a/app/.well-known/agent-card.json" \
 		--deployment-target="cloud_run" \
 		--project-number="$$PROJECT_NUMBER"
