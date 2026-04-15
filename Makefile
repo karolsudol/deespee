@@ -17,12 +17,29 @@ help:
 	@echo "  make dsp-test       Run tests for the DSP component (Rust)"
 	@echo "  make dmp-test       Run tests for the DMP component (Rust)"
 
+# --- Local Development ---
+
+local-infra:
+	@echo "Starting local infrastructure (Pub/Sub Emulator)..."
+	docker-compose up -d
+
+dsp-run:
+	@echo "Running DSP service..."
+	cd dsp && cargo run
+
+run-exchange:
+	@echo "Running Ad Exchange Simulator (Go)..."
+	cd adexchange && go run main.go
+
 # --- Global Commands ---
 
 install:
-	@echo "Installing dependencies for agents..."
+	@echo "Installing dependencies and setting up 'uv' virtual environment for agents..."
 	cd agents && $(MAKE) install
-	# Add Rust installation steps when dsp/dmp are initialized
+	@echo "Setting up Rust components (DSP/DMP)..."
+	# Rust components use standard cargo
+	@echo "Setting up Go components (Ad Exchange)..."
+	cd adexchange && go mod tidy
 
 test: agents-test dsp-test dmp-test
 

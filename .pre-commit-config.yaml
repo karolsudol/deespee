@@ -1,0 +1,52 @@
+repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.5.0
+    hooks:
+      - id: trailing-whitespace
+        exclude: .*\.ipynb$
+      - id: end-of-file-fixer
+        exclude: .*\.ipynb$
+      - id: check-yaml
+        args: [ --allow-multiple-documents ]
+      - id: check-added-large-files
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.9.0
+    hooks:
+      - id: ruff
+        args: [ --fix ]
+        exclude: .*\.ipynb$
+      - id: ruff-format
+        exclude: .*\.ipynb$
+  - repo: https://github.com/pre-commit/mirrors-mypy
+    rev: v1.11.2
+    hooks:
+      - id: mypy
+        additional_dependencies: [ types-requests, types-PyYAML, types-pytz ]
+        exclude: .*\.ipynb$
+  - repo: local
+    hooks:
+      - id: pyright
+        name: pyright
+        entry: bash -c "cd agents && uv run pyright ."
+        language: system
+        types: [ python ]
+        pass_filenames: false
+        exclude: .*\.ipynb$
+      - id: rustfmt
+        name: rustfmt
+        entry: bash -c "cd dsp && cargo fmt -- --check && cd ../dmp && cargo fmt -- --check"
+        language: system
+        types: [ rust ]
+        pass_filenames: false
+      - id: go-fmt
+        name: go-fmt
+        entry: bash -c "cd adexchange && go fmt ./..."
+        language: system
+        types: [ go ]
+        pass_filenames: false
+      - id: go-unit-tests
+        name: go-unit-tests
+        entry: bash -c "cd adexchange && go test ./..."
+        language: system
+        types: [ go ]
+        pass_filenames: false

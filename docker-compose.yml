@@ -1,0 +1,26 @@
+version: '3.8'
+
+services:
+  pubsub-emulator:
+    image: gcr.io/google.com/cloudsdktool/cloud-sdk:latest
+    command: gcloud beta emulators pubsub start --hostport=0.0.0.0:8085
+    ports:
+      - "8085:8085"
+
+  # A helper to create topics and subscriptions in the emulator
+  pubsub-setup:
+    image: gcr.io/google.com/cloudsdktool/cloud-sdk:latest
+    depends_on:
+      - pubsub-emulator
+    environment:
+      PUBSUB_EMULATOR_HOST: "pubsub-emulator:8085"
+    entrypoint: /bin/bash
+    command: >
+      -c "
+      sleep 5;
+      gcloud config set project test-project;
+      gcloud pubsub topics create agent-requests;
+      gcloud pubsub topics create dsp-actions;
+      gcloud pubsub subscriptions create dsp-push-subscription --topic agent-requests --push-endpoint http://host.docker.internal:8001/pubsub/push;
+      echo 'Pub/Sub emulator setup complete';
+      "
