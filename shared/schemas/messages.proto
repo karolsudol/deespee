@@ -2,6 +2,10 @@ syntax = "proto3";
 
 package deespee;
 
+option go_package = "github.com/karolsudol/deespee/adexchange/proto";
+
+// --- Agent Communication ---
+
 message AgentRequest {
   string request_id = 1;
   string query = 2;
@@ -14,6 +18,31 @@ message AgentResponse {
   bool success = 3;
   string error_message = 4;
 }
+
+// --- RTB Bidding Path ---
+
+message BidRequest {
+  string id = 1;
+  User user = 2;
+  Device device = 3;
+}
+
+message User {
+  string id = 1;
+}
+
+message Device {
+  string ua = 1;
+  string ip = 2;
+}
+
+message BidResponse {
+  string id = 1;
+  string bidid = 2;
+  float price = 3;
+}
+
+// --- Feedback Loop ---
 
 message DspAction {
   string action_id = 1;
