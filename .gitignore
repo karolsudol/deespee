@@ -70,6 +70,7 @@ Cargo.lock
 .env.*.local
 
 # --- Project Specific ---
+agents/app/proto/
 agents/tools/a2a-inspector/
 agents/tests/load_test/.results/
 .locust_env/
