@@ -1,4 +1,6 @@
-# Deespee
+# deespee
+
+<img src="deespee.png" width="800" height="400" alt="Deespee logo">
 
 Demand-Side Platform (DSP) integrated with Data Management Platform (DMP) and AI Agents for Real-Time Bidding (RTB) optimization.
 
