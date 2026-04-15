@@ -48,10 +48,11 @@ Demand-Side Platform (DSP) integrated with Data Management Platform (DMP) and AI
 This is a monorepo containing multiple components:
 
 - **`agents/`**: AI Agents powered by Google ADK (Python). Responsible for campaign strategy and optimization.
-- **`dsp/`**: High-performance Demand-Side Platform (Rust). Handles millisecond-latency bidding.
-- **`dmp/`**: Data Management Platform (Rust). Manages user profiles and audience segments.
-- **`adexchange/`**: Ad Exchange Simulator (Go). Generates bid requests and simulates traffic.
-- **`shared/`**: Shared Protobuf schemas for cross-service communication.
+- **`crates/dsp`**: High-performance Demand-Side Platform (Rust).
+- **`crates/dmp`**: Data Management Platform (Rust).
+- **`crates/adexchange`**: Ad Exchange Simulator (Rust).
+- **`crates/proto`**: Shared Protobuf schemas and generated code.
+- **`shared/`**: Source Protobuf schemas.
 - **`deployment/`**: Infrastructure as Code (Terraform) for GCP.
 
 ## Key RTB Components

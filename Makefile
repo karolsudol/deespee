@@ -32,8 +32,8 @@ dmp-run:
 	cargo run -p dmp
 
 run-exchange:
-	@echo "Running Ad Exchange Simulator (Go)..."
-	cd adexchange && go run main.go
+	@echo "Running Ad Exchange Simulator (Rust)..."
+	cargo run -p adexchange
 
 # --- Global Commands ---
 
@@ -42,8 +42,6 @@ install:
 	cd agents && $(MAKE) install
 	@echo "Setting up Rust workspace..."
 	cargo build
-	@echo "Setting up Go components (Ad Exchange)..."
-	cd adexchange && go mod tidy
 
 test: agents-test rust-test
 

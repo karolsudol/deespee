@@ -4,6 +4,7 @@ members = [
     "crates/dsp",
     "crates/dmp",
     "crates/proto",
+    "crates/adexchange",
 ]
 
 [workspace.dependencies]
@@ -18,3 +19,20 @@ tracing-subscriber = "=0.3.18"
 base64 = "=0.22.1"
 indexmap = "=2.2.6"
 prost-build = "=0.13.4"
+reqwest = { version = "0.12", features = ["json"] }
+
+# Pinned versions for Rust 1.84.1 compatibility
+icu_collections = "=1.5.0"
+icu_locid = "=1.5.0"
+icu_locid_transform = "=1.5.0"
+icu_normalizer = "=1.5.0"
+icu_properties = "=1.5.0"
+icu_provider = "=1.5.0"
+idna = "=0.5.0"
+idna_adapter = "=1.2.0"
+litemap = "=0.7.3"
+tinystr = "=0.7.6"
+writeable = "=0.5.5"
+zerovec = "=0.10.2"
+yoke = "=0.7.4"
+zerofrom = "=0.1.4"
