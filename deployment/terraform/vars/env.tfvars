@@ -16,7 +16,7 @@ github_pat_secret_id = "your-github_pat_secret_id"
 repository_owner = "Your GitHub organization or username."
 
 # Name of the repository you added to Cloud Build
-repository_name = "agents"
+repository_name = "deespee"
 
 # The Google Cloud region you will use to deploy the infrastructure
 region = "europe-west4"

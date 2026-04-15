@@ -30,9 +30,10 @@ dsp-run:
 # --- Global Commands ---
 
 install:
-	@echo "Installing dependencies for agents..."
+	@echo "Installing dependencies and setting up 'uv' virtual environment for agents..."
 	cd agents && $(MAKE) install
-	# Add Rust installation steps when dsp/dmp are initialized
+	@echo "Setting up Rust components (DSP/DMP)..."
+	# Rust components use standard cargo, which handles its own environments
 
 test: agents-test dsp-test dmp-test
 
