@@ -48,10 +48,11 @@ Demand-Side Platform (DSP) integrated with Data Management Platform (DMP) and AI
 This is a monorepo containing multiple components:
 
 - **`agents/`**: AI Agents powered by Google ADK (Python). Responsible for campaign strategy and optimization.
-- **`dsp/`**: High-performance Demand-Side Platform (Rust). Handles millisecond-latency bidding.
-- **`dmp/`**: Data Management Platform (Rust). Manages user profiles and audience segments.
-- **`adexchange/`**: Ad Exchange Simulator (Go). Generates bid requests and simulates traffic.
-- **`shared/`**: Shared Protobuf schemas for cross-service communication.
+- **`crates/dsp`**: High-performance Demand-Side Platform (Rust).
+- **`crates/dmp`**: Data Management Platform (Rust).
+- **`crates/adexchange`**: Ad Exchange Simulator (Rust).
+- **`crates/proto`**: Shared Protobuf schemas and generated code.
+- **`shared/`**: Source Protobuf schemas.
 - **`deployment/`**: Infrastructure as Code (Terraform) for GCP.
 
 ## Key RTB Components
@@ -92,6 +93,9 @@ The AI Agent queries BigQuery to analyze campaign performance (CTR, Spend, Win R
     ```
 
 ### Local Development Loop
+
+To run the full end-to-end demo locally:
+
 1.  **Start local infrastructure (Pub/Sub Emulator):**
     ```bash
     make local-infra
@@ -100,10 +104,22 @@ The AI Agent queries BigQuery to analyze campaign performance (CTR, Spend, Win R
     ```bash
     make dsp-run
     ```
-3.  **Run the Agent playground (Python):**
+3.  **Run the Ad Exchange Simulator (Go):**
+    ```bash
+    make run-exchange
+    ```
+4.  **Run the Agent playground (Python):**
     ```bash
     cd agents && make playground
     ```
+
+## 🎮 Demo Walkthrough
+
+Once all services are running, you can observe the following:
+
+1.  **Bidding Flow:** The Go Simulator sends a **Binary Protobuf** `BidRequest` to the Rust DSP every 5 seconds.
+2.  **DSP Decision:** The Rust DSP decodes the request, applies bidding logic, and responds with a binary `BidResponse`.
+3.  **Agent Interaction:** In the Agent Playground, you can ask the AI Agent to "Trigger a DSP request". The Agent will publish a Protobuf `AgentRequest` to the local Pub/Sub emulator, which the DSP is configured to receive.
 
 ### Orchestration
 Use the root-level `Makefile` to manage the entire project:

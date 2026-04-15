@@ -2,6 +2,10 @@ syntax = "proto3";
 
 package deespee;
 
+option go_package = "github.com/karolsudol/deespee/adexchange/proto";
+
+// --- Agent Communication ---
+
 message AgentRequest {
   string request_id = 1;
   string query = 2;
@@ -14,6 +18,58 @@ message AgentResponse {
   bool success = 3;
   string error_message = 4;
 }
+
+// --- RTB Bidding Path ---
+
+message BidRequest {
+  string id = 1;
+  User user = 2;
+  Device device = 3;
+  Site site = 4;
+  Impression imp = 5;
+}
+
+message User {
+  string id = 1;
+  repeated string segments = 2; // Interests/Audience IDs from DMP
+}
+
+message Device {
+  string ua = 1;
+  string ip = 2;
+  string devicetype = 3; // e.g. "phone", "desktop"
+  Geo geo = 4;
+}
+
+message Geo {
+  string country = 1;
+  string city = 2;
+  double lat = 3;
+  double lon = 4;
+}
+
+message Site {
+  string id = 1;
+  string domain = 2;
+  repeated string cat = 3; // Content Categories (IAB)
+}
+
+message Impression {
+  string id = 1;
+  uint32 w = 2; // Width
+  uint32 h = 3; // Height
+  string pos = 4; // Position (e.g. "above-the-fold")
+}
+
+message BidResponse {
+  string id = 1;
+  string bidid = 2;
+  float price = 3;
+  string adid = 4; // Creative ID
+  string nurl = 5; // Win notice URL
+}
+
+// --- Feedback Loop ---
 
 message DspAction {
   string action_id = 1;
