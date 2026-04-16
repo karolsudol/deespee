@@ -227,16 +227,53 @@ pub async fn handle_bid(body: Bytes) -> impl IntoResponse {
         camp.id, best_bid_price
     );
 
+    let tracking_params = format!(
+        "bid_id={}&user_id={}&campaign_id={}",
+        req.id, user_id, camp.id
+    );
+
+    let adm = format!(
+        "<html>\
+           <body style='margin:0;padding:0;'>\
+             <div style='width:300px;height:250px;background:#f0f0f0;display:flex;align-items:center;justify-content:center;flex-direction:column;border:1px solid #ccc;'>\
+               <h2 style='margin:0;'>{}</h2>\
+               <p style='font-size:12px;'>Targeted for: {}</p>\
+               <a href='http://localhost:8003/c?{}' target='_blank' style='display:inline-block;margin-top:10px;padding:10px 20px;background:#007bff;color:white;text-decoration:none;border-radius:5px;'>\
+                 Click Here\
+               </a>\
+               <img src='http://localhost:8003/i?{}' width='1' height='1' style='display:none;' />\
+               <script>\
+                 (function() {{\
+                   var tracked = false;\
+                   var observer = new IntersectionObserver(function(entries) {{\
+                     entries.forEach(function(entry) {{\
+                       if (entry.isIntersecting && entry.intersectionRatio >= 0.5 && !tracked) {{\
+                         setTimeout(function() {{\
+                           /* Check again after 1s for IAB standard */\
+                           if (!tracked) {{\
+                             fetch('http://localhost:8003/v?{}');\
+                             tracked = true;\
+                           }}\
+                         }}, 1000);\
+                       }}\
+                     }});\
+                   }}, {{ threshold: [0.5] }});\
+                   observer.observe(document.body);\
+                 }})();\
+               </script>\
+             </div>\
+           </body>\
+         </html>",
+        camp.name, user_id, tracking_params, tracking_params, tracking_params
+    );
+
     let resp = deespee::BidResponse {
         id: req.id.clone(),
         bidid: format!("bid-{}", req.id),
         price: best_bid_price,
         adid: format!("ad-{}", camp.id),
         crid: "cr-456".to_string(),
-        adm: format!(
-            "<html><body><h1>{} - Ad for {} in {}</h1></body></html>",
-            camp.name, user_id, city
-        ),
+        adm,
         nurl: format!(
             "http://localhost:8001/win?id={}&user_id={}&campaign_id={}&price={}",
             req.id, user_id, camp.id, best_bid_price

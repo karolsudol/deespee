@@ -149,3 +149,21 @@ message DmpUpdate {
   string key = 3;
   string value = 4;
 }
+
+// --- Tracking & Measurement Path ---
+
+message TrackingEvent {
+  enum InteractionType {
+    IMPRESSION = 0;
+    CLICK = 1;
+    CONVERSION = 2;
+    VIEWABILITY = 3;
+  }
+  string event_id = 1;
+  InteractionType type = 2;
+  string user_id = 3;
+  string campaign_id = 4;
+  string bid_id = 5;
+  uint64 timestamp = 6;
+  map<string, string> metadata = 7;
+}

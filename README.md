@@ -64,11 +64,13 @@ Moving beyond simple bids to complex, multi-variable targeting.
 
 ### Phase 3: Measurement & Verification
 The "Source of Truth" for what actually happened on the website.
-*   [ ] **Tracking Pixels:** Impression, Click, and Conversion event collectors.
-*   [ ] **Viewability:** IAB/MRC standard tracking (was the ad actually seen?).
-*   [ ] **Verification:** Bot detection and fraud filtering (SIVT/GIVT).
+*   [x] **Tracking Pixels:** Impression, Click, and Conversion event collectors.
+*   [x] **Viewability:** IAB/MRC standard tracking (was the ad actually seen?).
+*   [x] **Verification:** Bot detection and fraud filtering (SIVT/GIVT).
 *   [ ] **Discrepancy Engine:** Real-time reconciliation between DSP and Exchange stats.
-*   **Components:** `crates/dsp` (Win Notices), `crates/collector` (Upcoming), `BigQuery`.
+
+*   **Components:** `crates/dsp`, `crates/collector`, `BigQuery`.
+
 
 ### Phase 4: Optimization & Learning
 Using data to improve ROI through advanced modeling and testing.
