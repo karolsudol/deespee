@@ -77,6 +77,17 @@ message BidResponse {
   repeated string cat = 8; // Creative categories
 }
 
+// --- DMP / Audience Path ---
+
+message UserSegmentRequest {
+  string user_id = 1;
+}
+
+message UserSegmentResponse {
+  string user_id = 1;
+  repeated string segments = 2;
+}
+
 // --- Feedback Loop ---
 
 message DspAction {
