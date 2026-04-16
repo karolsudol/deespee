@@ -48,23 +48,23 @@ Demand-Side Platform (DSP) integrated with Data Management Platform (DMP) and AI
 ### ✅ Completed Features (Core Backend - Rust)
 *   **High-Speed Bidding Engine (DSP):** Real-time Protobuf-based bidding with support for CPM and eCPC models.
 *   **Advanced Targeting:** Geo/IP, Contextual (IAB Categories), and Audience Segment matching.
-*   **Budget Pacing:** Even pacing algorithm to distribute spend throughout the day.
 *   **Audience Memory (DMP):** Real-time user profile store with frequency capping and segment management.
-*   **Measurement & Verification:**
-    *   **Tracking Pixels:** Collection of Impressions, Clicks, and Conversions.
-    *   **Viewability:** IAB-standard tracking via `IntersectionObserver`.
-    *   **Bot Detection:** Modular verification engine filtering GIVT (General Invalid Traffic).
-    *   **Discrepancy Engine:** Real-time reconciliation between reported wins and actual impressions.
+*   **Measurement & Verification:** Tracking pixels, Viewability (`IntersectionObserver`), and Bot Detection.
+*   **Rust Lakehouse (Analytics):**
+    *   **Unified Ingestion:** Centralized collection of Wins, Impressions, Clicks, and Conversions.
+    *   **Real-Time Buffering:** Memory-resident buffering of events with background Parquet flushing.
+    *   **Deduplication:** Automatic filtering of duplicate pixel pings and event notifications.
+    *   **Parquet Storage:** Optimized columnar storage in `data/lakehouse` for efficient local querying.
 
-### 🚧 Phase 4: Intelligence & Analytics (TODO)
-*   **Data Warehouse (BigQuery):**
-    - [ ] **Event Schema:** Design schemas for granular RTB event storage (Wins, Imps, Clicks, Conversions).
-    - [ ] **Deduplication:** Implement logic to handle duplicate pixel pings and late win notices.
-*   **Performance Metrics:**
+### 🚧 Phase 4: Performance Analytics & Star Schema (TODO)
+*   **Star Schema Design:**
+    - [ ] **Fact Tables:** Finalize `fct_events` and `fct_bids` structure.
+    - [ ] **Dimension Tables:** Create dimensions for `dim_campaigns`, `dim_creatives`, and `dim_users`.
+*   **Analytics Engine:**
+    - [ ] **DataFusion Integration:** Implement a query layer to run SQL across the Parquet Lakehouse.
     - [ ] **ROAS Calculation:** Automated tracking of Return on Ad Spend per campaign.
-    - [ ] **Multi-Touch Attribution:** Logic to determine which touchpoints led to a conversion.
-*   **Analytics Pipeline:**
-    - [ ] **Streaming Enrichment:** Enrich incoming events with Geo/Contextual metadata before storage.
+*   **Reporting:**
+    - [ ] **Performance Snapshot:** Hourly/Daily rollups of spend, win rate, and CTR.
 
 ### 🤖 Phase 5: Agentic Control & Interface (TODO)
 *   **Autonomous Optimization:**

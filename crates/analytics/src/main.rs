@@ -41,9 +41,25 @@ async fn main() -> anyhow::Result<()> {
                 std::mem::take(&mut *buf)
             };
 
-            let count = events_to_flush.len();
+            let count_raw = events_to_flush.len();
+
+            // Deduplication logic: Keep only the first occurrence of each event_id in this batch
+            let mut seen = std::collections::HashSet::new();
+            let deduplicated_events: Vec<_> = events_to_flush
+                .into_iter()
+                .filter(|e| seen.insert(e.event_id.clone()))
+                .collect();
+
+            let count = deduplicated_events.len();
+            if count < count_raw {
+                println!(
+                    "🧹 Deduplication: Filtered {} duplicate events",
+                    count_raw - count
+                );
+            }
+
             println!("⚡ Background: Flushing {} events to Lakehouse...", count);
-            let batch = events_to_record_batch(events_to_flush);
+            let batch = events_to_record_batch(deduplicated_events);
             if let Err(e) = flush_state.storage.write_batch(&batch, "fct_events") {
                 eprintln!("❌ Failed to flush events: {}", e);
             } else {
