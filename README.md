@@ -43,49 +43,60 @@ Demand-Side Platform (DSP) integrated with Data Management Platform (DMP) and AI
     +-------------------------+                                         +--------------------------+
 ```
 
-## 🗺️ Roadmap & Execution Plan
+## 🗺️ Roadmap & Feature Progress
 
-### Phase 1: Core RTB & Memory (DMP) - **Phase Completed**
-Establish the high-speed data link between the bidding muscle and the audience memory.
-*   [x] **Workspace Setup:** Rust Monorepo with shared Protobufs.
-*   [x] **Traffic Simulation:** High-performance Rust Ad Exchange.
-*   [x] **DMP MVP:** High-speed user profile store with in-memory state.
-*   [x] **Hot Path:** DSP ↔ DMP lookup for real-time segments (<10ms).
-*   [x] **Frequency Capping:** Recency/Frequency tracking per user via Pub/Sub loop.
-*   **Components:** `crates/proto`, `crates/dmp`, `crates/dsp`.
+### ✅ Completed Features (Core Backend - Rust)
+*   **High-Speed Bidding Engine (DSP):** Real-time Protobuf-based bidding with support for CPM and eCPC models.
+*   **Advanced Targeting:** Geo/IP, Contextual (IAB Categories), and Audience Segment matching.
+*   **Budget Pacing:** Even pacing algorithm to distribute spend throughout the day.
+*   **Audience Memory (DMP):** Real-time user profile store with frequency capping and segment management.
+*   **Measurement & Verification:**
+    *   **Tracking Pixels:** Collection of Impressions, Clicks, and Conversions.
+    *   **Viewability:** IAB-standard tracking via `IntersectionObserver`.
+    *   **Bot Detection:** Modular verification engine filtering GIVT (General Invalid Traffic).
+    *   **Discrepancy Engine:** Real-time reconciliation between reported wins and actual impressions.
 
-### Phase 2: Advanced Targeting & Bidding
-Moving beyond simple bids to complex, multi-variable targeting.
-*   [x] **Geo/IP Targeting:** City, Country, and ISP-based bidding.
-*   [x] **Contextual Engine:** IAB category matching and domain blacklists.
-*   [x] **Budget Pacing:** Smooth delivery algorithms (avoid spending daily budget in 5 mins).
-*   [x] **Bidding Models:** CPM vs. eCPC optimized bidding.
-*   **Components:** `crates/dsp`, `crates/dmp`.
+### 🚧 Phase 4: Intelligence & Analytics (TODO)
+*   **Data Warehouse (BigQuery):**
+    - [ ] **Event Schema:** Design schemas for granular RTB event storage (Wins, Imps, Clicks, Conversions).
+    - [ ] **Deduplication:** Implement logic to handle duplicate pixel pings and late win notices.
+*   **Performance Metrics:**
+    - [ ] **ROAS Calculation:** Automated tracking of Return on Ad Spend per campaign.
+    - [ ] **Multi-Touch Attribution:** Logic to determine which touchpoints led to a conversion.
+*   **Analytics Pipeline:**
+    - [ ] **Streaming Enrichment:** Enrich incoming events with Geo/Contextual metadata before storage.
 
-### Phase 3: Measurement & Verification
-The "Source of Truth" for what actually happened on the website.
-*   [x] **Tracking Pixels:** Impression, Click, and Conversion event collectors.
-*   [x] **Viewability:** IAB/MRC standard tracking (was the ad actually seen?).
-*   [x] **Verification:** Bot detection and fraud filtering (SIVT/GIVT).
-*   [x] **Discrepancy Engine:** Real-time reconciliation between DSP and Exchange stats.
+### 🤖 Phase 5: Agentic Control & Interface (TODO)
+*   **Autonomous Optimization:**
+    - [ ] **Bid Shading:** Agent dynamically adjusts bids to pay the minimum required to win (saving budget).
+    - [ ] **Budget Reallocation:** Agent automatically moves funds from low-ROI to high-ROI campaigns hourly.
+    - [ ] **Lookalike Discovery:** Agent identifies high-performing segments and suggests new targeting rules.
+*   **Agency Interface (ADT):**
+    - [ ] **Natural Language Briefing:** "Brief" the agent on goals (e.g., "Max conversions for under $10").
+    - [ ] **Anomaly Detection:** Agent alerts humans via chat if win rates or spend spike unexpectedly.
 
-*   **Components:** `crates/dsp`, `crates/collector`, `BigQuery`.
+## 🔄 System Behavior & Optimization Loop
 
-
-### Phase 4: Optimization & Learning
-Using data to improve ROI through advanced modeling and testing.
-*   [ ] **Attribution Models:** First-touch, Last-touch, and Multi-touch attribution (MTA).
-*   [ ] **A/B Testing:** Multi-arm bandit testing for creatives and targeting strategies.
-*   [ ] **DCO:** Dynamic Creative Optimization based on user attributes.
-*   [ ] **Analytics Pipeline:** Real-time streaming from Pub/Sub to BigQuery/Looker.
-*   **Components:** `BigQuery`, `Python/Agents` (Data Processing).
-
-### Phase 5: Agentic Control & Interface (ADT)
-The final stage: AI autonomously managing millions of dollars in spend.
-*   [ ] **ADT Hub:** Agency Trading Desk API for campaign management.
-*   [ ] **Autonomous Optimizer:** AI Agent adjusts bids/budgets based on ROI hourly.
-*   [ ] **Human-Agent Chat:** Natural language interface for high-level strategy shifts.
-*   **Components:** `agents/`, `crates/adt-api` (Upcoming).
+```text
+       +----------------+      (1) Bid Request      +----------------+
+       |  AD EXCHANGE   | ------------------------> |      DSP       |
+       |  (Simulator)   | <------------------------ |     (Rust)     |
+       +-------^--------+      (2) Bid Response     +-------+--------+
+               |                                            |
+               | (3) Win Notice / Pixel Ping                | (4) Lookup
+               |                                            v
+       +-------v--------+                           +----------------+
+       |   COLLECTOR    |                           |      DMP       |
+       |    (Rust)      |                           |  (Audience)    |
+       +-------+--------+                           +-------^--------+
+               |                                            |
+               | (5) Streaming Data                         | (7) Optimize
+               v                                            |
+       +----------------+                           +-------+--------+
+       | DATA WAREHOUSE | <------------------------ |    AI AGENT    |
+       |   (BigQuery)   |      (6) Analyze ROI      |  (Optimizer)   |
+       +----------------+                           +----------------+
+```
 
 > **Note on Storage:** For this demo, we use **Firestore** for simplicity and scale-to-zero. In a production RTB environment with <10ms requirements, **Google Cloud Memorystore (Redis)** is used for the hot path lookup between DSP and DMP.
 
