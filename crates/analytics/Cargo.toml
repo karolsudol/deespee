@@ -9,6 +9,9 @@ edition = "2021"
 arrow = "=52.2.0"
 parquet = "=52.2.0"
 
+# Query & API
+axum.workspace = true
+
 # Workspace dependencies
 tokio.workspace = true
 serde.workspace = true

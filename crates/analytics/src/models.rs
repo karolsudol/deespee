@@ -35,6 +35,26 @@ impl UnifiedEvent {
             timestamp: event.timestamp as i64,
         }
     }
+
+    pub fn from_tracking(event: deespee::TrackingEvent) -> Self {
+        let event_type = match deespee::tracking_event::InteractionType::try_from(event.r#type) {
+            Ok(deespee::tracking_event::InteractionType::Impression) => "impression",
+            Ok(deespee::tracking_event::InteractionType::Click) => "click",
+            Ok(deespee::tracking_event::InteractionType::Conversion) => "conversion",
+            Ok(deespee::tracking_event::InteractionType::Viewability) => "viewability",
+            Err(_) => "unknown",
+        };
+
+        Self {
+            event_id: event.event_id,
+            event_type: event_type.to_string(),
+            user_id: event.user_id,
+            campaign_id: event.campaign_id,
+            bid_id: event.bid_id,
+            cost: 0.0,
+            timestamp: event.timestamp as i64,
+        }
+    }
 }
 
 pub fn events_to_record_batch(events: Vec<UnifiedEvent>) -> RecordBatch {
