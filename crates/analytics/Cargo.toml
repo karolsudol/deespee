@@ -4,13 +4,10 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
-# Arrow & Parquet
-arrow.workspace = true
-parquet.workspace = true
-
-# ETL & Query Engines
-polars = { version = "0.45.0", features = ["lazy", "parquet", "json"] }
-datafusion = { version = "43.0.0" }
+# Standard Arrow & Parquet (Core Lakehouse)
+# We use versions that are extremely stable and don't pull heavy transitive dependencies
+arrow = "=52.2.0"
+parquet = "=52.2.0"
 
 # Workspace dependencies
 tokio.workspace = true

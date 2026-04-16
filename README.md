@@ -94,9 +94,16 @@ Demand-Side Platform (DSP) integrated with Data Management Platform (DMP) and AI
                v                                            |
        +----------------+                           +-------+--------+
        | DATA WAREHOUSE | <------------------------ |    AI AGENT    |
-       |   (BigQuery)   |      (6) Analyze ROI      |  (Optimizer)   |
+       | (Arrow/Parquet)|      (6) Analyze ROI      |  (Optimizer)   |
        +----------------+                           +----------------+
 ```
+
+### ❄️ Data Warehouse Flow (The Rust Lakehouse)
+To ensure sub-millisecond bidding and high-performance analytics, we use a **Lakehouse** architecture:
+1.  **Ingestion:** The **Analytics Worker** consumes events from Pub/Sub.
+2.  **Buffering:** Events are converted into **Apache Arrow RecordBatches** (Zero-copy memory format).
+3.  **Persistence:** Batches are flushed to **Apache Parquet** files in the `data/lakehouse` directory.
+4.  **Querying:** The **AI Agent** uses **DataFusion** to run standard SQL across these Parquet files, providing warehouse-scale performance locally.
 
 > **Note on Storage:** For this demo, we use **Firestore** for simplicity and scale-to-zero. In a production RTB environment with <10ms requirements, **Google Cloud Memorystore (Redis)** is used for the hot path lookup between DSP and DMP.
 
