@@ -1,8 +1,14 @@
 mod handlers;
 mod models;
 
-use crate::handlers::{bid::handle_bid, pubsub::handle_pubsub_push};
-use axum::{routing::post, Router};
+use crate::handlers::{
+    bid::{handle_bid, handle_win},
+    pubsub::handle_pubsub_push,
+};
+use axum::{
+    routing::{get, post},
+    Router,
+};
 use std::net::SocketAddr;
 
 #[tokio::main]
@@ -13,7 +19,8 @@ async fn main() {
     // Setup routes
     let app = Router::new()
         .route("/pubsub/push", post(handle_pubsub_push))
-        .route("/bid", post(handle_bid));
+        .route("/bid", post(handle_bid))
+        .route("/win", get(handle_win));
 
     // Start server
     let addr = SocketAddr::from(([0, 0, 0, 0], 8001));

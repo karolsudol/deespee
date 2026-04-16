@@ -9,22 +9,21 @@ fn main() -> anyhow::Result<()> {
 
     let dsp_host = "localhost:8001";
 
-    println!("🚀 Ad Exchange Simulator (Rich Traffic) started...");
+    println!("🚀 Ad Exchange Simulator (Production Traffic) started...");
     println!("🎯 Targeting DSP at {}", dsp_host);
 
     loop {
         if let Err(e) = send_bid_request(dsp_host) {
             eprintln!("❌ Error sending bid request: {}", e);
         }
-        std::thread::sleep(Duration::from_secs(2)); // Faster requests for analytics
+        std::thread::sleep(Duration::from_secs(2));
     }
 }
 
 fn send_bid_request(host: &str) -> anyhow::Result<()> {
     let ts = os_timestamp();
 
-    // Simulate some randomness
-    let user_id = format!("user-{}", ts % 10); // 10 distinct users
+    let user_id = format!("user-{}", ts % 10);
     let (city, lat, lon) = if ts % 2 == 0 {
         ("San Francisco", 37.77, -122.41)
     } else {
@@ -35,12 +34,15 @@ fn send_bid_request(host: &str) -> anyhow::Result<()> {
         id: format!("req-{}", ts),
         user: Some(deespee::User {
             id: user_id,
-            segments: vec!["auto-shopper".to_string(), "tech-enthusiast".to_string()],
+            segments: vec!["auto-shopper".to_string()],
         }),
         device: Some(deespee::Device {
-            ua: "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7)".to_string(),
+            ua: "Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X)".to_string(),
             ip: "1.1.1.1".to_string(),
-            devicetype: "desktop".to_string(),
+            devicetype: "phone".to_string(),
+            make: "Apple".to_string(),
+            model: "iPhone 15".to_string(),
+            os: "iOS".to_string(),
             geo: Some(deespee::Geo {
                 country: "USA".to_string(),
                 city: city.to_string(),
@@ -50,15 +52,17 @@ fn send_bid_request(host: &str) -> anyhow::Result<()> {
         }),
         site: Some(deespee::Site {
             id: "site-456".to_string(),
-            domain: "example-news.com".to_string(),
-            cat: vec!["IAB12".to_string()], // News
+            domain: "news-portal.com".to_string(),
+            page: "https://news-portal.com/tech/latest-ai-news".to_string(),
+            cat: vec!["IAB12".to_string()],
         }),
         imp: Some(deespee::Impression {
             id: "imp-1".to_string(),
-            w: 300,
-            h: 250,
-            pos: "above-the-fold".to_string(),
+            w: 320,
+            h: 50,
+            pos: "1".to_string(),
         }),
+        test: "0".to_string(),
     };
 
     let mut body = Vec::new();
@@ -91,11 +95,9 @@ fn send_bid_request(host: &str) -> anyhow::Result<()> {
             let body_data = &response[pos + 4..];
             let bid_resp = deespee::BidResponse::decode(body_data)?;
             println!(
-                "✅ Received Bid: ID={}, Price={:.2}, AdID={}",
-                bid_resp.id, bid_resp.price, bid_resp.adid
+                "✅ Bid Received: Price={:.2}, AdID={}, Creative={}",
+                bid_resp.price, bid_resp.adid, bid_resp.crid
             );
-        } else {
-            println!("ℹ️  No bid received (Non-200 response)");
         }
     }
 

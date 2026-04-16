@@ -27,18 +27,22 @@ message BidRequest {
   Device device = 3;
   Site site = 4;
   Impression imp = 5;
+  string test = 6; // Is this a test request?
 }
 
 message User {
   string id = 1;
-  repeated string segments = 2; // Interests/Audience IDs from DMP
+  repeated string segments = 2;
 }
 
 message Device {
   string ua = 1;
   string ip = 2;
-  string devicetype = 3; // e.g. "phone", "desktop"
-  Geo geo = 4;
+  string devicetype = 3; // phone, desktop, tablet, tv
+  string make = 4;       // e.g. "Apple"
+  string model = 5;      // e.g. "iPhone 15"
+  string os = 6;         // e.g. "iOS"
+  Geo geo = 7;
 }
 
 message Geo {
@@ -51,25 +55,56 @@ message Geo {
 message Site {
   string id = 1;
   string domain = 2;
-  repeated string cat = 3; // Content Categories (IAB)
+  string page = 3;       // Full URL of the page
+  repeated string cat = 4; // Content Categories
 }
 
 message Impression {
   string id = 1;
-  uint32 w = 2; // Width
-  uint32 h = 3; // Height
-  string pos = 4; // Position (e.g. "above-the-fold")
+  uint32 w = 2;
+  uint32 h = 3;
+  string pos = 4;
 }
 
 message BidResponse {
   string id = 1;
   string bidid = 2;
   float price = 3;
-  string adid = 4; // Creative ID
-  string nurl = 5; // Win notice URL
+  string adid = 4;       // Ad ID
+  string crid = 5;       // Creative ID
+  string adm = 6;        // Ad Markup (HTML/JS)
+  string nurl = 7;       // Win notice URL
+  repeated string cat = 8; // Creative categories
 }
 
-// --- Feedback Loop ---
+// --- DMP / Audience Path ---
+
+message UserSegmentRequest {
+  string user_id = 1;
+}
+
+message UserSegmentResponse {
+  string user_id = 1;
+  repeated string segments = 2;
+}
+
+// --- Feedback & Event Loop (Asynchronous) ---
+
+message EventNotification {
+  enum EventType {
+    WIN = 0;
+    IMPRESSION = 1;
+    CLICK = 2;
+    CONVERSION = 3;
+  }
+  string event_id = 1;
+  EventType type = 2;
+  string user_id = 3;
+  string bid_id = 4;
+  string ad_id = 5;
+  float cost = 6;
+  uint64 timestamp = 7;
+}
 
 message DspAction {
   string action_id = 1;
