@@ -77,7 +77,7 @@ async fn handle_pubsub_push(
         );
     }
 
-    "Event Processed"
+    "Event Processed".into_response()
 }
 
 #[tokio::main]
