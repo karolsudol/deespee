@@ -8,13 +8,13 @@ Demand-Side Platform (DSP) integrated with Data Management Platform (DMP) and AI
 
 ```text
                                      +---------------------------+
-                                     |      USER INTERFACE       |
-                                     |   (Agent Playground / UI) |
+                                     |   AGENCY TRADING DESK     |
+                                     |  (Human-Agent Interface)  |
                                      +-------------+-------------+
                                                    |
                                      +-------------v-------------+
                                      |      AI AGENT (BRAIN)     |
-                                     |    (Python / ADK Hub)     |
+                                     |    (Strategic Orchestrator) |
                                      +------+------+-------+-----+
                                             |      |       |
                  +--------------------------+      |       +--------------------------+
@@ -38,10 +38,52 @@ Demand-Side Platform (DSP) integrated with Data Management Platform (DMP) and AI
                  +---------------------------------+----------------------------------+
                  |                                                                    |
     +------------+------------+                                         +-------------+------------+
-    |   AD EXCHANGE (GO)      |                                         |      MOCK WEBSITE        |
+    |   AD EXCHANGE (RUST)    |                                         |      MOCK WEBSITE        |
     |  (Traffic Simulator)    <-----------------------------------------+   (SSP / Publisher)      |
     +-------------------------+                                         +--------------------------+
 ```
+
+## 🗺️ Roadmap & Execution Plan
+
+### Phase 1: Core RTB & Memory (DMP) - **Current Focus**
+Establish the high-speed data link between the bidding muscle and the audience memory.
+*   [x] **Workspace Setup:** Rust Monorepo with shared Protobufs.
+*   [x] **Traffic Simulation:** High-performance Rust Ad Exchange.
+*   [ ] **DMP MVP:** High-speed user profile store (Firestore/Redis).
+*   [ ] **Hot Path:** DSP ↔ DMP lookup for real-time segments (<10ms).
+*   [ ] **Frequency Capping:** Recency/Frequency tracking per user.
+*   **Components:** `crates/proto`, `crates/dmp`, `crates/dsp`.
+
+### Phase 2: Advanced Targeting & Bidding
+Moving beyond simple bids to complex, multi-variable targeting.
+*   [ ] **Geo/IP Targeting:** City, Country, and ISP-based bidding.
+*   [ ] **Contextual Engine:** IAB category matching and domain blacklists.
+*   [ ] **Budget Pacing:** Smooth delivery algorithms (avoid spending daily budget in 5 mins).
+*   [ ] **Bidding Models:** CPM vs. eCPC optimized bidding.
+*   **Components:** `crates/dsp`, `crates/dmp`.
+
+### Phase 3: Measurement & Verification
+The "Source of Truth" for what actually happened on the website.
+*   [ ] **Tracking Pixels:** Impression, Click, and Conversion event collectors.
+*   [ ] **Viewability:** IAB/MRC standard tracking (was the ad actually seen?).
+*   [ ] **Verification:** Bot detection and fraud filtering (SIVT/GIVT).
+*   [ ] **Discrepancy Engine:** Real-time reconciliation between DSP and Exchange stats.
+*   **Components:** `crates/dsp` (Win Notices), `crates/collector` (Upcoming), `BigQuery`.
+
+### Phase 4: Optimization & Learning
+Using data to improve ROI through advanced modeling and testing.
+*   [ ] **Attribution Models:** First-touch, Last-touch, and Multi-touch attribution (MTA).
+*   [ ] **A/B Testing:** Multi-arm bandit testing for creatives and targeting strategies.
+*   [ ] **DCO:** Dynamic Creative Optimization based on user attributes.
+*   [ ] **Analytics Pipeline:** Real-time streaming from Pub/Sub to BigQuery/Looker.
+*   **Components:** `BigQuery`, `Python/Agents` (Data Processing).
+
+### Phase 5: Agentic Control & Interface (ADT)
+The final stage: AI autonomously managing millions of dollars in spend.
+*   [ ] **ADT Hub:** Agency Trading Desk API for campaign management.
+*   [ ] **Autonomous Optimizer:** AI Agent adjusts bids/budgets based on ROI hourly.
+*   [ ] **Human-Agent Chat:** Natural language interface for high-level strategy shifts.
+*   **Components:** `agents/`, `crates/adt-api` (Upcoming).
 
 > **Note on Storage:** For this demo, we use **Firestore** for simplicity and scale-to-zero. In a production RTB environment with <10ms requirements, **Google Cloud Memorystore (Redis)** is used for the hot path lookup between DSP and DMP.
 
