@@ -17,16 +17,15 @@ pub async fn handle_bid(body: Bytes) -> impl IntoResponse {
         .as_ref()
         .map(|u| u.id.as_str())
         .unwrap_or("unknown");
-    let city = req
+    let device_info = req
         .device
         .as_ref()
-        .and_then(|d| d.geo.as_ref())
-        .map(|g| g.city.as_str())
-        .unwrap_or("unknown");
+        .map(|d| format!("{} {}", d.make, d.model))
+        .unwrap_or("unknown".to_string());
 
     println!(
-        "🎯 Bid Request: ID={}, User={}, City={}",
-        req.id, user_id, city
+        "🎯 Bid Request: ID={}, User={}, Device={}",
+        req.id, user_id, device_info
     );
 
     // Basic Bidding Logic
@@ -36,8 +35,11 @@ pub async fn handle_bid(body: Bytes) -> impl IntoResponse {
         id: req.id.clone(),
         bidid: format!("bid-{}", req.id),
         price: bid_price,
-        adid: "creative-789".to_string(),
+        adid: "creative-123".to_string(),
+        crid: "cr-456".to_string(),
+        adm: "<html><body><h1>Ad Served</h1></body></html>".to_string(),
         nurl: format!("http://localhost:8001/win?id={}", req.id),
+        cat: vec!["IAB1".to_string()],
     };
 
     // Encode Protobuf BidResponse
