@@ -88,7 +88,23 @@ message UserSegmentResponse {
   repeated string segments = 2;
 }
 
-// --- Feedback Loop ---
+// --- Feedback & Event Loop (Asynchronous) ---
+
+message EventNotification {
+  enum EventType {
+    WIN = 0;
+    IMPRESSION = 1;
+    CLICK = 2;
+    CONVERSION = 3;
+  }
+  string event_id = 1;
+  EventType type = 2;
+  string user_id = 3;
+  string bid_id = 4;
+  string ad_id = 5;
+  float cost = 6;
+  uint64 timestamp = 7;
+}
 
 message DspAction {
   string action_id = 1;

@@ -21,6 +21,8 @@ services:
       gcloud config set project test-project;
       gcloud pubsub topics create agent-requests;
       gcloud pubsub topics create dsp-actions;
+      gcloud pubsub topics create dsp-events;
       gcloud pubsub subscriptions create dsp-push-subscription --topic agent-requests --push-endpoint http://host.docker.internal:8001/pubsub/push;
+      gcloud pubsub subscriptions create dmp-push-subscription --topic dsp-events --push-endpoint http://host.docker.internal:8002/pubsub/push;
       echo 'Pub/Sub emulator setup complete';
       "

@@ -45,13 +45,13 @@ Demand-Side Platform (DSP) integrated with Data Management Platform (DMP) and AI
 
 ## 🗺️ Roadmap & Execution Plan
 
-### Phase 1: Core RTB & Memory (DMP) - **Current Focus**
+### Phase 1: Core RTB & Memory (DMP) - **Phase Completed**
 Establish the high-speed data link between the bidding muscle and the audience memory.
 *   [x] **Workspace Setup:** Rust Monorepo with shared Protobufs.
 *   [x] **Traffic Simulation:** High-performance Rust Ad Exchange.
-*   [ ] **DMP MVP:** High-speed user profile store (Firestore/Redis).
-*   [ ] **Hot Path:** DSP ↔ DMP lookup for real-time segments (<10ms).
-*   [ ] **Frequency Capping:** Recency/Frequency tracking per user.
+*   [x] **DMP MVP:** High-speed user profile store with in-memory state.
+*   [x] **Hot Path:** DSP ↔ DMP lookup for real-time segments (<10ms).
+*   [x] **Frequency Capping:** Recency/Frequency tracking per user via Pub/Sub loop.
 *   **Components:** `crates/proto`, `crates/dmp`, `crates/dsp`.
 
 ### Phase 2: Advanced Targeting & Bidding
