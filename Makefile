@@ -23,6 +23,20 @@ local-infra:
 	@echo "Starting local infrastructure (Pub/Sub Emulator)..."
 	docker-compose up -d
 
+local-stop:
+	@echo "Stopping local infrastructure..."
+	docker-compose stop
+
+local-down:
+	@echo "Removing local infrastructure containers..."
+	docker-compose down
+
+local-clean:
+	@echo "Cleaning local infrastructure (containers and volumes)..."
+	docker-compose down -v
+
+local-restart: local-down local-infra
+
 dsp-run:
 	@echo "Running DSP service..."
 	cargo run -p dsp
@@ -43,7 +57,13 @@ install:
 	@echo "Setting up Rust workspace..."
 	cargo build
 
-test: agents-test rust-test
+clean:
+	@echo "Cleaning Rust build artifacts..."
+	cargo clean
+	@echo "Cleaning Python artifacts..."
+	find . -type d -name "__pycache__" -exec rm -rf {} +
+	find . -type d -name ".pytest_cache" -exec rm -rf {} +
+	find . -type d -name ".ruff_cache" -exec rm -rf {} +
 
 rust-test:
 	@echo "Running Rust workspace tests..."

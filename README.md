@@ -106,7 +106,7 @@ To run the full end-to-end demo locally:
     ```bash
     make dsp-run
     ```
-3.  **Run the Ad Exchange Simulator (Go):**
+3.  **Run the Ad Exchange Simulator (Rust):**
     ```bash
     make run-exchange
     ```
@@ -114,6 +114,14 @@ To run the full end-to-end demo locally:
     ```bash
     cd agents && make playground
     ```
+
+### Infrastructure Management
+- **`make local-stop`**: Stop the Pub/Sub emulator.
+- **`make local-down`**: Remove emulator containers.
+- **`make local-clean`**: Remove containers and volumes (full reset).
+- **`make local-restart`**: Quick restart of the infrastructure.
+- **`make clean`**: Clean all build artifacts (Rust and Python).
+
 
 ## 🎮 Demo Walkthrough
 
