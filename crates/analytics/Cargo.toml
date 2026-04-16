@@ -1,0 +1,25 @@
+[package]
+name = "analytics"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+# Arrow & Parquet
+arrow.workspace = true
+parquet.workspace = true
+
+# ETL & Query Engines
+polars = { version = "0.45.0", features = ["lazy", "parquet", "json"] }
+datafusion = { version = "43.0.0" }
+
+# Workspace dependencies
+tokio.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+anyhow.workspace = true
+tracing.workspace = true
+tracing-subscriber.workspace = true
+deespee-proto = { path = "../proto" }
+prost.workspace = true
+uuid = { version = "1.8", features = ["v4"] }
+chrono = { version = "0.4", features = ["serde"] }

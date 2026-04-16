@@ -4,7 +4,7 @@ members = [
     "crates/dsp",
     "crates/dmp",
     "crates/proto",
-    "crates/adexchange", "crates/collector",
+    "crates/adexchange", "crates/collector", "crates/analytics",
 ]
 
 [workspace.dependencies]
@@ -20,6 +20,8 @@ base64 = "=0.22.1"
 indexmap = "=2.2.6"
 prost-build = "=0.13.4"
 reqwest = { version = "0.12", features = ["json"] }
+arrow = "=53.3.0"
+parquet = "=53.3.0"
 
 # Pinned versions for Rust 1.84.1 compatibility
 icu_collections = "=1.5.0"
