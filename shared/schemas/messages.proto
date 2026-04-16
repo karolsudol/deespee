@@ -104,6 +104,36 @@ message EventNotification {
   string ad_id = 5;
   float cost = 6;
   uint64 timestamp = 7;
+  string campaign_id = 8;
+}
+
+enum BidType {
+  CPM = 0;
+  ECPC = 1;
+}
+
+message Campaign {
+  string id = 1;
+  string name = 2;
+  float total_budget = 3;
+  float daily_budget = 4;
+  repeated string targeted_segments = 5;
+  repeated string targeted_cities = 6;
+  repeated string targeted_categories = 7;
+  BidType bid_type = 8;
+  float target_value = 9; // CPM price or eCPC target
+}
+
+message CampaignState {
+  string campaign_id = 1;
+  float spent_today = 2;
+}
+
+message CampaignListRequest {}
+
+message CampaignListResponse {
+  repeated Campaign campaigns = 1;
+  repeated CampaignState states = 2;
 }
 
 message DspAction {
@@ -118,4 +148,22 @@ message DmpUpdate {
   string agent_request_id = 2;
   string key = 3;
   string value = 4;
+}
+
+// --- Tracking & Measurement Path ---
+
+message TrackingEvent {
+  enum InteractionType {
+    IMPRESSION = 0;
+    CLICK = 1;
+    CONVERSION = 2;
+    VIEWABILITY = 3;
+  }
+  string event_id = 1;
+  InteractionType type = 2;
+  string user_id = 3;
+  string campaign_id = 4;
+  string bid_id = 5;
+  uint64 timestamp = 6;
+  map<string, string> metadata = 7;
 }

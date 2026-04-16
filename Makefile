@@ -1,6 +1,6 @@
 # Root Makefile for Deespee Monorepo
 
-.PHONY: install test lint deploy help local-infra dsp-run dmp-run run-exchange
+.PHONY: install test lint deploy help local-infra dsp-run dmp-run collector-run run-exchange
 
 # Default target
 help:
@@ -15,6 +15,7 @@ help:
 	@echo "Component targets:"
 	@echo "  make dsp-run    Run the Rust DSP service"
 	@echo "  make dmp-run    Run the Rust DMP service"
+	@echo "  make collector-run Run the Measurement Collector service"
 	@echo "  make run-exchange Run the Go Ad Exchange simulator"
 
 # --- Local Development ---
@@ -44,6 +45,10 @@ dsp-run:
 dmp-run:
 	@echo "Running DMP service..."
 	cargo run -p dmp
+
+collector-run:
+	@echo "Running Collector service..."
+	cargo run -p collector
 
 run-exchange:
 	@echo "Running Ad Exchange Simulator (Rust)..."
