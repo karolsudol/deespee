@@ -114,7 +114,8 @@ This is a monorepo containing multiple components:
 - **`agents/`**: AI Agents powered by Google ADK (Python). Responsible for campaign strategy and optimization.
 - **`crates/dsp`**: High-performance Demand-Side Platform (Rust).
 - **`crates/dmp`**: Data Management Platform (Rust).
-- **`crates/collector`**: Measurement and Tracking Collector (Rust).
+- **`crates/collector`**: Real-time Measurement & Verification (Rust). Handles pixel tracking, bot detection, and win-reconciliation.
+- **`crates/analytics`**: Lakehouse Ingestion Engine (Rust). Buffers and persists all events into Parquet for the AI Agent.
 - **`crates/adexchange`**: Ad Exchange Simulator (Rust).
 - **`crates/proto`**: Shared Protobuf schemas and generated code.
 - **`shared/`**: Source Protobuf schemas.
