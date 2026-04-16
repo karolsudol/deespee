@@ -107,6 +107,7 @@ This is a monorepo containing multiple components:
 - **`agents/`**: AI Agents powered by Google ADK (Python). Responsible for campaign strategy and optimization.
 - **`crates/dsp`**: High-performance Demand-Side Platform (Rust).
 - **`crates/dmp`**: Data Management Platform (Rust).
+- **`crates/collector`**: Measurement and Tracking Collector (Rust).
 - **`crates/adexchange`**: Ad Exchange Simulator (Rust).
 - **`crates/proto`**: Shared Protobuf schemas and generated code.
 - **`shared/`**: Source Protobuf schemas.
@@ -157,15 +158,23 @@ To run the full end-to-end demo locally:
     ```bash
     make local-infra
     ```
-2.  **Run the DSP service (Rust):**
+2.  **Run the DMP service (Audience & Campaigns):**
+    ```bash
+    make dmp-run
+    ```
+3.  **Run the DSP service (Bidding Engine):**
     ```bash
     make dsp-run
     ```
-3.  **Run the Ad Exchange Simulator (Rust):**
+4.  **Run the Collector service (Measurement):**
+    ```bash
+    make collector-run
+    ```
+5.  **Run the Ad Exchange Simulator (Traffic):**
     ```bash
     make run-exchange
     ```
-4.  **Run the Agent playground (Python):**
+6.  **Run the Agent playground (Optimization):**
     ```bash
     cd agents && make playground
     ```
@@ -185,6 +194,8 @@ Once all services are running, you can observe the following:
 1.  **Bidding Flow:** The Go Simulator sends a **Binary Protobuf** `BidRequest` to the Rust DSP every 5 seconds.
 2.  **DSP Decision:** The Rust DSP decodes the request, applies bidding logic, and responds with a binary `BidResponse`.
 3.  **Agent Interaction:** In the Agent Playground, you can ask the AI Agent to "Trigger a DSP request". The Agent will publish a Protobuf `AgentRequest` to the local Pub/Sub emulator, which the DSP is configured to receive.
+4.  **Monitoring Reconciliation:** You can view real-time discrepancy stats (Wins vs. Impressions) by visiting the Measurement Collector's report:
+    - [Discrepancy Report (Local)](http://localhost:8003/report)
 
 ### Orchestration
 Use the root-level `Makefile` to manage the entire project:

@@ -14,23 +14,23 @@ impl AppState {
         let campaigns = vec![
             deespee::Campaign {
                 id: "camp-123".to_string(),
-                name: "High Value NYC Shoppers (CPM)".to_string(),
+                name: "SF News Readers (CPM)".to_string(),
                 total_budget: 10000.0,
                 daily_budget: 100.0,
-                targeted_segments: vec!["high-value-shopper".to_string()],
-                targeted_cities: vec!["New York".to_string()],
-                targeted_categories: vec![],
+                targeted_segments: vec!["generic-audience".to_string()],
+                targeted_cities: vec!["San Francisco".to_string()],
+                targeted_categories: vec!["IAB12".to_string()],
                 bid_type: deespee::BidType::Cpm as i32,
                 target_value: 5.0, // $5.00 CPM
             },
             deespee::Campaign {
                 id: "camp-456".to_string(),
-                name: "Tech Enthusiasts (eCPC)".to_string(),
+                name: "Global Tech Catch-all (eCPC)".to_string(),
                 total_budget: 5000.0,
                 daily_budget: 50.0,
                 targeted_segments: vec!["generic-audience".to_string()],
-                targeted_cities: vec![],
-                targeted_categories: vec!["IAB19".to_string()], // Tech
+                targeted_cities: vec![],     // All cities
+                targeted_categories: vec![], // All categories
                 bid_type: deespee::BidType::Ecpc as i32,
                 target_value: 2.5, // $2.50 target cost-per-click
             },

@@ -35,7 +35,9 @@ async fn main() {
         "🚀 Measurement Collector (Modular + Bot Detection) listening on {}",
         addr
     );
+    println!("📊 Discrepancy Report available at: http://localhost:8003/report");
 
     let listener = tokio::net::TcpListener::bind(addr).await.unwrap();
+
     axum::serve(listener, app).await.unwrap();
 }
