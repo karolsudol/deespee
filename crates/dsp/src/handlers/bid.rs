@@ -10,6 +10,8 @@ use std::time::Duration;
 pub struct WinQuery {
     pub id: String,
     pub user_id: Option<String>,
+    pub campaign_id: Option<String>,
+    pub price: Option<f32>,
 }
 
 async fn fetch_segments(user_id: &str) -> Vec<String> {
@@ -54,6 +56,66 @@ async fn fetch_segments(user_id: &str) -> Vec<String> {
     vec![]
 }
 
+async fn fetch_campaigns() -> (
+    Vec<deespee::Campaign>,
+    std::collections::HashMap<String, f32>,
+) {
+    let host = "localhost:8002";
+    let mut stream = match TcpStream::connect(host) {
+        Ok(s) => s,
+        Err(_) => return (vec![], std::collections::HashMap::new()),
+    };
+
+    let _ = stream.set_read_timeout(Some(Duration::from_secs(1)));
+    let _ = stream.set_write_timeout(Some(Duration::from_secs(1)));
+
+    let http_request = format!(
+        "GET /campaigns HTTP/1.1\r\n\
+         Host: {}\r\n\
+         Connection: close\r\n\r\n",
+        host
+    );
+
+    if stream.write_all(http_request.as_bytes()).is_err() {
+        return (vec![], std::collections::HashMap::new());
+    }
+
+    let mut response = Vec::new();
+    if stream.read_to_end(&mut response).is_ok() {
+        if let Some(pos) = response.windows(4).position(|w| w == b"\r\n\r\n") {
+            let body_data = &response[pos + 4..];
+            if let Ok(campaign_resp) = deespee::CampaignListResponse::decode(body_data) {
+                let mut states = std::collections::HashMap::new();
+                for state in campaign_resp.states {
+                    states.insert(state.campaign_id, state.spent_today);
+                }
+                return (campaign_resp.campaigns, states);
+            }
+        }
+    }
+    (vec![], std::collections::HashMap::new())
+}
+
+fn get_pacing_multiplier(spent_today: f32, daily_budget: f32) -> f32 {
+    // Simple even pacing: target spend is proportional to time of day
+    let now = std::time::SystemTime::now()
+        .duration_since(std::time::UNIX_EPOCH)
+        .unwrap();
+    let seconds_since_midnight = now.as_secs() % 86400;
+    let target_spend_ratio = seconds_since_midnight as f32 / 86400.0;
+    let current_spend_ratio = spent_today / daily_budget;
+
+    if current_spend_ratio > target_spend_ratio + 0.1 {
+        // Over-spending: reduce bid price
+        0.5
+    } else if current_spend_ratio < target_spend_ratio - 0.1 {
+        // Under-spending: increase bid price (aggressive)
+        1.2
+    } else {
+        1.0
+    }
+}
+
 pub async fn handle_bid(body: Bytes) -> impl IntoResponse {
     let req = match deespee::BidRequest::decode(body) {
         Ok(r) => r,
@@ -68,7 +130,10 @@ pub async fn handle_bid(body: Bytes) -> impl IntoResponse {
         .as_ref()
         .map(|u| u.id.as_str())
         .unwrap_or("unknown");
+
+    // Fetch data from DMP (Parallel-ish)
     let segments = fetch_segments(user_id).await;
+    let (campaigns, campaign_states) = fetch_campaigns().await;
 
     let city = req
         .device
@@ -77,7 +142,6 @@ pub async fn handle_bid(body: Bytes) -> impl IntoResponse {
         .map(|g| g.city.as_str())
         .unwrap_or("unknown");
 
-    // Phase 2: Contextual Targeting
     let categories = req.site.as_ref().map(|s| s.cat.clone()).unwrap_or_default();
 
     println!(
@@ -85,40 +149,97 @@ pub async fn handle_bid(body: Bytes) -> impl IntoResponse {
         req.id, user_id, city, categories, segments
     );
 
-    // Decision Logic
-    let mut bid_price = 0.50;
     if segments.contains(&"capped".to_string()) {
         println!("🛑 CAPPED: Not bidding for user {}", user_id);
-        bid_price = 0.00;
-    } else {
-        // Apply Targeting Premiums
-        if city == "New York" {
-            bid_price += 4.50; // New York Premium
-        }
+        return (axum::http::StatusCode::NO_CONTENT, "Capped").into_response();
+    }
 
-        if categories.contains(&"IAB12".to_string()) {
-            println!("📰 CONTEXTUAL: News site detected, adding premium");
-            bid_price += 1.00; // News Context Premium
-        }
+    // Phase 2: Budget Pacing & Campaign Matching
+    let mut selected_campaign = None;
+    let mut best_bid_price = 0.0;
 
-        if segments.contains(&"high-value-shopper".to_string()) {
-            bid_price += 2.00; // Audience Premium
+    for camp in campaigns {
+        // 1. Targeting Check
+        let segment_match = camp.targeted_segments.is_empty()
+            || camp.targeted_segments.iter().any(|s| segments.contains(s));
+        let city_match =
+            camp.targeted_cities.is_empty() || camp.targeted_cities.contains(&city.to_string());
+        let category_match = camp.targeted_categories.is_empty()
+            || camp
+                .targeted_categories
+                .iter()
+                .any(|c| categories.contains(c));
+
+        if segment_match && city_match && category_match {
+            // 2. Budget Check
+            let spent_today = campaign_states.get(&camp.id).cloned().unwrap_or(0.0);
+            if spent_today >= camp.daily_budget {
+                println!(
+                    "💸 Budget Exhausted for campaign {}: ${}",
+                    camp.id, spent_today
+                );
+                continue;
+            }
+
+            // 3. Pacing & Bidding Model
+            let mut base_bid = 0.0;
+
+            if camp.bid_type == deespee::BidType::Cpm as i32 {
+                base_bid = camp.target_value;
+                // Apply Targeting Premiums for CPM
+                if city == "New York" {
+                    base_bid += 2.0;
+                }
+                if segments.contains(&"high-value-shopper".to_string()) {
+                    base_bid += 1.5;
+                }
+            } else if camp.bid_type == deespee::BidType::Ecpc as i32 {
+                // eCPC Model: bid = target_ecpc * predicted_ctr
+                // For this MVP, we use a fixed CTR (e.g., 0.1% or 0.001)
+                let predicted_ctr = 0.001;
+                base_bid = camp.target_value * predicted_ctr * 1000.0; // Multiply by 1000 for CPM basis
+                println!(
+                    "📈 eCPC Bidding: Target=${:.2}, Predicted CTR={:.3}, Base Bid=${:.2} CPM",
+                    camp.target_value, predicted_ctr, base_bid
+                );
+            }
+
+            let pacing_mult = get_pacing_multiplier(spent_today, camp.daily_budget);
+            let final_bid = base_bid * pacing_mult;
+
+            if final_bid > best_bid_price {
+                best_bid_price = final_bid;
+                selected_campaign = Some(camp);
+            }
         }
     }
+
+    let camp = match selected_campaign {
+        Some(c) => c,
+        None => {
+            println!("🤷 No matching campaigns for request {}", req.id);
+            return (axum::http::StatusCode::NO_CONTENT, "No Match").into_response();
+        }
+    };
+
+    println!(
+        "✅ BIDDING: Campaign={} Price=${:.2}",
+        camp.id, best_bid_price
+    );
 
     let resp = deespee::BidResponse {
         id: req.id.clone(),
         bidid: format!("bid-{}", req.id),
-        price: bid_price as f32,
-        adid: "creative-123".to_string(),
+        price: best_bid_price,
+        adid: format!("ad-{}", camp.id),
         crid: "cr-456".to_string(),
         adm: format!(
-            "<html><body><h1>Ad for {} in {} (Context: {:?})</h1></body></html>",
-            user_id, city, categories
+            "<html><body><h1>{} - Ad for {} in {}</h1></body></html>",
+            camp.name, user_id, city
         ),
         nurl: format!(
-            "http://localhost:8001/win?id={}&user_id={}",
-            req.id, user_id
+            "http://localhost:8001/win?id={}&user_id={}&campaign_id={}&price={}",
+            req.id, user_id, camp.id, best_bid_price
         ),
         cat: vec!["IAB1".to_string()],
     };
@@ -130,8 +251,13 @@ pub async fn handle_bid(body: Bytes) -> impl IntoResponse {
 }
 
 pub async fn handle_win(Query(params): Query<WinQuery>) -> impl IntoResponse {
-    println!("🏆 Win Notice Received for Bid: {}", params.id);
+    println!(
+        "🏆 Win Notice Received for Bid: {} (Campaign: {:?}, Price: {:?})",
+        params.id, params.campaign_id, params.price
+    );
     let user_id = params.user_id.unwrap_or_else(|| "unknown".to_string());
+    let campaign_id = params.campaign_id.unwrap_or_default();
+    let price = params.price.unwrap_or(0.0);
 
     tokio::spawn(async move {
         let host = "localhost:8002";
@@ -141,11 +267,12 @@ pub async fn handle_win(Query(params): Query<WinQuery>) -> impl IntoResponse {
             user_id: user_id.clone(),
             bid_id: params.id,
             ad_id: "creative-123".to_string(),
-            cost: 1.25,
+            cost: price, // Use the actual bid price
             timestamp: std::time::SystemTime::now()
                 .duration_since(std::time::UNIX_EPOCH)
                 .unwrap()
                 .as_secs(),
+            campaign_id,
         };
 
         let mut body = Vec::new();

@@ -58,8 +58,8 @@ Establish the high-speed data link between the bidding muscle and the audience m
 Moving beyond simple bids to complex, multi-variable targeting.
 *   [x] **Geo/IP Targeting:** City, Country, and ISP-based bidding.
 *   [x] **Contextual Engine:** IAB category matching and domain blacklists.
-*   [ ] **Budget Pacing:** Smooth delivery algorithms (avoid spending daily budget in 5 mins).
-*   [ ] **Bidding Models:** CPM vs. eCPC optimized bidding.
+*   [x] **Budget Pacing:** Smooth delivery algorithms (avoid spending daily budget in 5 mins).
+*   [x] **Bidding Models:** CPM vs. eCPC optimized bidding.
 *   **Components:** `crates/dsp`, `crates/dmp`.
 
 ### Phase 3: Measurement & Verification

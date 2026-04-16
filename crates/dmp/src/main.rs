@@ -12,9 +12,11 @@ use std::collections::HashMap;
 use std::net::SocketAddr;
 use std::sync::{Arc, Mutex};
 
-// Shared state for User Frequency
+// Shared state for User Frequency and Campaign Budgets
 struct AppState {
     frequency: Mutex<HashMap<String, u32>>,
+    campaigns: Mutex<Vec<deespee::Campaign>>,
+    campaign_states: Mutex<HashMap<String, f32>>, // campaign_id -> spent_today
 }
 
 async fn handle_segments(
@@ -56,6 +58,28 @@ async fn handle_segments(
     ([(header::CONTENT_TYPE, "application/x-protobuf")], buf).into_response()
 }
 
+async fn handle_campaigns(
+    axum::extract::State(state): axum::extract::State<Arc<AppState>>,
+) -> AxResponse {
+    let campaigns = state.campaigns.lock().unwrap().clone();
+    let states_map = state.campaign_states.lock().unwrap();
+
+    let states = states_map
+        .iter()
+        .map(|(id, spent)| deespee::CampaignState {
+            campaign_id: id.clone(),
+            spent_today: *spent,
+        })
+        .collect();
+
+    let resp = deespee::CampaignListResponse { campaigns, states };
+
+    let mut buf = Vec::new();
+    resp.encode(&mut buf).unwrap();
+
+    ([(header::CONTENT_TYPE, "application/x-protobuf")], buf).into_response()
+}
+
 async fn handle_pubsub_push(
     axum::extract::State(state): axum::extract::State<Arc<AppState>>,
     body: Bytes,
@@ -66,13 +90,27 @@ async fn handle_pubsub_push(
     };
 
     if event.r#type == deespee::event_notification::EventType::Win as i32 {
-        let mut freq_map = state.frequency.lock().unwrap();
-        let counter = freq_map.entry(event.user_id.clone()).or_insert(0);
-        *counter += 1;
-        println!(
-            "📈 Incrementing frequency for user {}: new count = {}",
-            event.user_id, counter
-        );
+        // Increment user frequency
+        {
+            let mut freq_map = state.frequency.lock().unwrap();
+            let counter = freq_map.entry(event.user_id.clone()).or_insert(0);
+            *counter += 1;
+            println!(
+                "📈 Incrementing frequency for user {}: new count = {}",
+                event.user_id, counter
+            );
+        }
+
+        // Increment campaign spend
+        if !event.campaign_id.is_empty() {
+            let mut states_map = state.campaign_states.lock().unwrap();
+            let spend = states_map.entry(event.campaign_id.clone()).or_insert(0.0);
+            *spend += event.cost;
+            println!(
+                "💰 Campaign {} spend updated: ${:.2}",
+                event.campaign_id, spend
+            );
+        }
     }
 
     StatusCode::OK.into_response()
@@ -82,13 +120,42 @@ async fn handle_pubsub_push(
 async fn main() {
     tracing_subscriber::fmt::init();
 
+    // Initialize with some dummy campaigns
+    let campaigns = vec![
+        deespee::Campaign {
+            id: "camp-123".to_string(),
+            name: "High Value NYC Shoppers (CPM)".to_string(),
+            total_budget: 10000.0,
+            daily_budget: 100.0,
+            targeted_segments: vec!["high-value-shopper".to_string()],
+            targeted_cities: vec!["New York".to_string()],
+            targeted_categories: vec![],
+            bid_type: deespee::BidType::Cpm as i32,
+            target_value: 5.0, // $5.00 CPM
+        },
+        deespee::Campaign {
+            id: "camp-456".to_string(),
+            name: "Tech Enthusiasts (eCPC)".to_string(),
+            total_budget: 5000.0,
+            daily_budget: 50.0,
+            targeted_segments: vec!["generic-audience".to_string()],
+            targeted_cities: vec![],
+            targeted_categories: vec!["IAB19".to_string()], // Tech
+            bid_type: deespee::BidType::Ecpc as i32,
+            target_value: 2.5, // $2.50 target cost-per-click
+        },
+    ];
+
     let state = Arc::new(AppState {
         frequency: Mutex::new(HashMap::new()),
+        campaigns: Mutex::new(campaigns),
+        campaign_states: Mutex::new(HashMap::new()),
     });
 
     let app = Router::new()
         .route("/health", get(|| async { "OK" }))
         .route("/segments", post(handle_segments))
+        .route("/campaigns", get(handle_campaigns))
         .route("/pubsub/push", post(handle_pubsub_push))
         .with_state(state);
 
