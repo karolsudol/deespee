@@ -6,6 +6,7 @@ use axum::{
 };
 use base64::{engine::general_purpose, Engine as _};
 use deespee_proto::deespee;
+use prost::Message;
 use serde::Deserialize;
 use std::sync::Arc;
 
@@ -22,7 +23,7 @@ pub async fn handle_impression(
     Query(params): Query<TrackParams>,
 ) -> impl IntoResponse {
     if !state.verification.is_valid(&headers) {
-        state.record_event("fraud_impression");
+        state.record_metric(&params.campaign_id, "fraud_impression");
         return (axum::http::StatusCode::FORBIDDEN, "Invalid Traffic").into_response();
     }
 
@@ -30,7 +31,7 @@ pub async fn handle_impression(
         &params,
         deespee::tracking_event::InteractionType::Impression,
     );
-    state.record_event("impression");
+    state.record_metric(&params.campaign_id, "impression");
 
     let pixel = general_purpose::STANDARD
         .decode("R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7")
@@ -44,12 +45,12 @@ pub async fn handle_click(
     Query(params): Query<TrackParams>,
 ) -> impl IntoResponse {
     if !state.verification.is_valid(&headers) {
-        state.record_event("fraud_click");
+        state.record_metric(&params.campaign_id, "fraud_click");
         return (axum::http::StatusCode::FORBIDDEN, "Invalid Traffic").into_response();
     }
 
     log_event(&params, deespee::tracking_event::InteractionType::Click);
-    state.record_event("click");
+    state.record_metric(&params.campaign_id, "click");
     "Click Recorded".into_response()
 }
 
@@ -59,7 +60,7 @@ pub async fn handle_viewability(
     Query(params): Query<TrackParams>,
 ) -> impl IntoResponse {
     if !state.verification.is_valid(&headers) {
-        state.record_event("fraud_viewability");
+        state.record_metric(&params.campaign_id, "fraud_viewability");
         return (axum::http::StatusCode::FORBIDDEN, "Invalid Traffic").into_response();
     }
 
@@ -67,7 +68,7 @@ pub async fn handle_viewability(
         &params,
         deespee::tracking_event::InteractionType::Viewability,
     );
-    state.record_event("viewability");
+    state.record_metric(&params.campaign_id, "viewability");
 
     let pixel = general_purpose::STANDARD
         .decode("R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7")
@@ -80,9 +81,8 @@ pub async fn handle_conversion(
     headers: HeaderMap,
     Query(params): Query<TrackParams>,
 ) -> impl IntoResponse {
-    // Conversions are usually higher security, but for now we follow same pattern
     if !state.verification.is_valid(&headers) {
-        state.record_event("fraud_conversion");
+        state.record_metric(&params.campaign_id, "fraud_conversion");
         return (axum::http::StatusCode::FORBIDDEN, "Invalid Traffic").into_response();
     }
 
@@ -90,8 +90,28 @@ pub async fn handle_conversion(
         &params,
         deespee::tracking_event::InteractionType::Conversion,
     );
-    state.record_event("conversion");
+    state.record_metric(&params.campaign_id, "conversion");
     "Conversion Recorded".into_response()
+}
+
+pub async fn handle_win_notify(
+    State(state): State<Arc<AppState>>,
+    body: axum::body::Bytes,
+) -> impl IntoResponse {
+    if let Ok(event) = deespee::EventNotification::decode(body) {
+        println!(
+            "🔔 RECONCILIATION: Win reported for Campaign={}",
+            event.campaign_id
+        );
+        state.record_metric(&event.campaign_id, "win");
+        axum::http::StatusCode::OK
+    } else {
+        axum::http::StatusCode::BAD_REQUEST
+    }
+}
+
+pub async fn handle_report(State(state): State<Arc<AppState>>) -> impl IntoResponse {
+    state.get_discrepancy_report()
 }
 
 fn log_event(params: &TrackParams, event_type: deespee::tracking_event::InteractionType) {

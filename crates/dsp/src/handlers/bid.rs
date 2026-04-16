@@ -328,6 +328,22 @@ pub async fn handle_win(Query(params): Query<WinQuery>) -> impl IntoResponse {
             let _ = stream.write_all(http_request.as_bytes());
             let _ = stream.write_all(&body);
         }
+
+        // Notify Collector for Reconciliation (Discrepancy Engine)
+        let collector_host = "localhost:8003";
+        if let Ok(mut stream) = TcpStream::connect(collector_host) {
+            let http_request = format!(
+                "POST /win HTTP/1.1\r\n\
+                 Host: {}\r\n\
+                 Content-Type: application/x-protobuf\r\n\
+                 Content-Length: {}\r\n\
+                 Connection: close\r\n\r\n",
+                collector_host,
+                body.len()
+            );
+            let _ = stream.write_all(http_request.as_bytes());
+            let _ = stream.write_all(&body);
+        }
     });
 
     "Win Recorded"

@@ -3,10 +3,12 @@ mod state;
 mod verification;
 
 use crate::handlers::events::{
-    handle_click, handle_conversion, handle_impression, handle_viewability,
+    handle_click, handle_conversion, handle_impression, handle_report, handle_viewability,
+    handle_win_notify,
 };
 use crate::state::AppState;
-use axum::{routing::get, Router};
+use axum::routing::{get, post};
+use axum::Router;
 use std::net::SocketAddr;
 use std::sync::Arc;
 
@@ -24,6 +26,8 @@ async fn main() {
         .route("/c", get(handle_click)) // Click
         .route("/v", get(handle_viewability)) // Viewability
         .route("/conv", get(handle_conversion)) // Conversion
+        .route("/win", post(handle_win_notify)) // Win notification from DSP
+        .route("/report", get(handle_report)) // Discrepancy report
         .with_state(state);
 
     let addr = SocketAddr::from(([0, 0, 0, 0], 8003));

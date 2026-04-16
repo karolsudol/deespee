@@ -67,7 +67,7 @@ The "Source of Truth" for what actually happened on the website.
 *   [x] **Tracking Pixels:** Impression, Click, and Conversion event collectors.
 *   [x] **Viewability:** IAB/MRC standard tracking (was the ad actually seen?).
 *   [x] **Verification:** Bot detection and fraud filtering (SIVT/GIVT).
-*   [ ] **Discrepancy Engine:** Real-time reconciliation between DSP and Exchange stats.
+*   [x] **Discrepancy Engine:** Real-time reconciliation between DSP and Exchange stats.
 
 *   **Components:** `crates/dsp`, `crates/collector`, `BigQuery`.
 
