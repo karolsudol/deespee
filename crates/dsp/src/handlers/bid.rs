@@ -14,11 +14,9 @@ pub struct WinQuery {
 
 async fn fetch_segments(user_id: &str) -> Vec<String> {
     let host = "localhost:8002";
-
     let req = deespee::UserSegmentRequest {
         user_id: user_id.to_string(),
     };
-
     let mut body = Vec::new();
     req.encode(&mut body).unwrap();
 
@@ -53,7 +51,6 @@ async fn fetch_segments(user_id: &str) -> Vec<String> {
             }
         }
     }
-
     vec![]
 }
 
@@ -73,18 +70,40 @@ pub async fn handle_bid(body: Bytes) -> impl IntoResponse {
         .unwrap_or("unknown");
     let segments = fetch_segments(user_id).await;
 
+    let city = req
+        .device
+        .as_ref()
+        .and_then(|d| d.geo.as_ref())
+        .map(|g| g.city.as_str())
+        .unwrap_or("unknown");
+
+    // Phase 2: Contextual Targeting
+    let categories = req.site.as_ref().map(|s| s.cat.clone()).unwrap_or_default();
+
     println!(
-        "🎯 Bid Request: ID={}, User={}, Segments={:?}",
-        req.id, user_id, segments
+        "🎯 Bid Request: ID={}, User={}, City={}, Categories={:?}, Segments={:?}",
+        req.id, user_id, city, categories, segments
     );
 
-    // 3. Decision Logic based on segments
+    // Decision Logic
     let mut bid_price = 0.50;
     if segments.contains(&"capped".to_string()) {
         println!("🛑 CAPPED: Not bidding for user {}", user_id);
         bid_price = 0.00;
-    } else if segments.contains(&"high-value-shopper".to_string()) {
-        bid_price = 2.50;
+    } else {
+        // Apply Targeting Premiums
+        if city == "New York" {
+            bid_price += 4.50; // New York Premium
+        }
+
+        if categories.contains(&"IAB12".to_string()) {
+            println!("📰 CONTEXTUAL: News site detected, adding premium");
+            bid_price += 1.00; // News Context Premium
+        }
+
+        if segments.contains(&"high-value-shopper".to_string()) {
+            bid_price += 2.00; // Audience Premium
+        }
     }
 
     let resp = deespee::BidResponse {
@@ -93,7 +112,10 @@ pub async fn handle_bid(body: Bytes) -> impl IntoResponse {
         price: bid_price as f32,
         adid: "creative-123".to_string(),
         crid: "cr-456".to_string(),
-        adm: format!("<html><body><h1>Ad for {:?}</h1></body></html>", segments),
+        adm: format!(
+            "<html><body><h1>Ad for {} in {} (Context: {:?})</h1></body></html>",
+            user_id, city, categories
+        ),
         nurl: format!(
             "http://localhost:8001/win?id={}&user_id={}",
             req.id, user_id
@@ -109,16 +131,8 @@ pub async fn handle_bid(body: Bytes) -> impl IntoResponse {
 
 pub async fn handle_win(Query(params): Query<WinQuery>) -> impl IntoResponse {
     println!("🏆 Win Notice Received for Bid: {}", params.id);
-
-    // In a real scenario, we'd publish to the REAL Pub/Sub topic.
-    // Since we're using the emulator and want to avoid heavy dependencies,
-    // we'll simulate the "Pub/Sub" push by calling the DMP directly for this POC,
-    // OR we can implement a minimal Pub/Sub REST publisher.
-
-    // Let's use the DMP direct call for the POC feedback loop to keep it simple and fast.
     let user_id = params.user_id.unwrap_or_else(|| "unknown".to_string());
 
-    // Asynchronously update DMP (Fire and Forget)
     tokio::spawn(async move {
         let host = "localhost:8002";
         let event = deespee::EventNotification {
@@ -127,7 +141,7 @@ pub async fn handle_win(Query(params): Query<WinQuery>) -> impl IntoResponse {
             user_id: user_id.clone(),
             bid_id: params.id,
             ad_id: "creative-123".to_string(),
-            cost: 1.25, // This would be dynamic in production
+            cost: 1.25,
             timestamp: std::time::SystemTime::now()
                 .duration_since(std::time::UNIX_EPOCH)
                 .unwrap()
@@ -137,7 +151,6 @@ pub async fn handle_win(Query(params): Query<WinQuery>) -> impl IntoResponse {
         let mut body = Vec::new();
         event.encode(&mut body).unwrap();
 
-        // Push to DMP's Pub/Sub handler
         if let Ok(mut stream) = TcpStream::connect(host) {
             let http_request = format!(
                 "POST /pubsub/push HTTP/1.1\r\n\

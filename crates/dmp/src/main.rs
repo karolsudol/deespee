@@ -1,6 +1,7 @@
+type AxResponse = axum::response::Response;
 use axum::{
     body::Bytes,
-    http::header,
+    http::{header, StatusCode},
     response::IntoResponse,
     routing::{get, post},
     Router,
@@ -19,10 +20,10 @@ struct AppState {
 async fn handle_segments(
     axum::extract::State(state): axum::extract::State<Arc<AppState>>,
     body: Bytes,
-) -> impl IntoResponse {
+) -> AxResponse {
     let req = match deespee::UserSegmentRequest::decode(body) {
         Ok(r) => r,
-        Err(_) => return (axum::http::StatusCode::BAD_REQUEST, "Invalid Protobuf").into_response(),
+        Err(_) => return (StatusCode::BAD_REQUEST, "Invalid Protobuf").into_response(),
     };
 
     println!("🧠 DMP Segment Lookup for User: {}", req.user_id);
@@ -36,7 +37,6 @@ async fn handle_segments(
         vec!["generic-audience".to_string()]
     };
 
-    // Add Capping Segment
     if count >= 3 {
         println!(
             "⚠️ User {} is frequency capped ({} impressions)",
@@ -59,12 +59,10 @@ async fn handle_segments(
 async fn handle_pubsub_push(
     axum::extract::State(state): axum::extract::State<Arc<AppState>>,
     body: Bytes,
-) -> impl IntoResponse {
-    // Note: In real Cloud Run, Pub/Sub sends a JSON envelope.
-    // For this internal direct call loop, we decode the binary EventNotification directly.
+) -> AxResponse {
     let event = match deespee::EventNotification::decode(body) {
         Ok(e) => e,
-        Err(_) => return (axum::http::StatusCode::BAD_REQUEST, "Invalid Protobuf").into_response(),
+        Err(_) => return StatusCode::BAD_REQUEST.into_response(),
     };
 
     if event.r#type == deespee::event_notification::EventType::Win as i32 {
@@ -77,7 +75,7 @@ async fn handle_pubsub_push(
         );
     }
 
-    "Event Processed".into_response()
+    StatusCode::OK.into_response()
 }
 
 #[tokio::main]
@@ -95,7 +93,10 @@ async fn main() {
         .with_state(state);
 
     let addr = SocketAddr::from(([0, 0, 0, 0], 8002));
-    println!("🚀 DMP Service (Rust + Memory State) listening on {}", addr);
+    println!(
+        "🚀 DMP Service (Rust + Explicit Types) listening on {}",
+        addr
+    );
 
     let listener = tokio::net::TcpListener::bind(addr).await.unwrap();
     axum::serve(listener, app).await.unwrap();
