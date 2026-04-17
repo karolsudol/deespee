@@ -33,7 +33,7 @@ fn send_bid_request(host: &str) -> anyhow::Result<()> {
     let req = deespee::BidRequest {
         id: format!("req-{}", ts),
         user: Some(deespee::User {
-            id: user_id,
+            id: user_id.clone(),
             segments: vec!["auto-shopper".to_string()],
         }),
         device: Some(deespee::Device {
