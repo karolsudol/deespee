@@ -98,9 +98,46 @@ fn send_bid_request(host: &str) -> anyhow::Result<()> {
                 "✅ Bid Received: Price={:.2}, AdID={}, Creative={}",
                 bid_resp.price, bid_resp.adid, bid_resp.crid
             );
+
+            // SIMULATION: 50% Win Rate, 10% Click Rate
+            let win = ts % 2 == 0;
+            if win {
+                println!("🏆 Simulating WIN notice for {}...", bid_resp.id);
+                if let Err(e) = trigger_win_notice(&bid_resp.nurl) {
+                    eprintln!("❌ Error triggering win notice: {}", e);
+                }
+
+                // Simulate an impression ping to Collector
+                if let Err(e) = trigger_pixel_ping("i", &req.id, user_id) {
+                    eprintln!("❌ Error triggering impression ping: {}", e);
+                }
+
+                // 10% chance of a click
+                if ts % 10 == 0 {
+                    println!("🖱️ Simulating CLICK for {}...", req.id);
+                    if let Err(e) = trigger_pixel_ping("c", &req.id, user_id) {
+                        eprintln!("❌ Error triggering click ping: {}", e);
+                    }
+                }
+            }
         }
     }
 
+    Ok(())
+}
+
+fn trigger_win_notice(nurl: &str) -> anyhow::Result<()> {
+    // Win notices are usually simple GET requests from the Exchange
+    reqwest::blocking::get(nurl)?;
+    Ok(())
+}
+
+fn trigger_pixel_ping(pixel_type: &str, bid_id: &str, user_id: &str) -> anyhow::Result<()> {
+    let url = format!(
+        "http://localhost:8003/{}?bid_id={}&user_id={}&campaign_id=camp-auto",
+        pixel_type, bid_id, user_id
+    );
+    reqwest::blocking::get(url)?;
     Ok(())
 }
 
