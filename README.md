@@ -56,15 +56,15 @@ Demand-Side Platform (DSP) integrated with Data Management Platform (DMP) and AI
     *   **Deduplication:** Automatic filtering of duplicate pixel pings and event notifications.
     *   **Parquet Storage:** Optimized columnar storage in `data/lakehouse` for efficient local querying.
 
-### 🚧 Phase 4: Performance Analytics & Star Schema (TODO)
-*   **Star Schema Design:**
-    - [ ] **Fact Tables:** Finalize `fct_events` and `fct_bids` structure.
-    - [ ] **Dimension Tables:** Create dimensions for `dim_campaigns`, `dim_creatives`, and `dim_users`.
-*   **Analytics Engine:**
-    - [ ] **DataFusion Integration:** Implement a query layer to run SQL across the Parquet Lakehouse.
-    - [ ] **ROAS Calculation:** Automated tracking of Return on Ad Spend per campaign.
-*   **Reporting:**
-    - [ ] **Performance Snapshot:** Hourly/Daily rollups of spend, win rate, and CTR.
+### 🚧 Phase 4: Performance Analytics & POC (Current)
+*   **The Fusion Server:**
+    - [x] **Raw Query Endpoint:** Add a query interface to the Analytics crate to read Parquet events.
+    - [ ] **DataFusion Integration:** Upgrade to a full SQL engine (DataFusion) for advanced Star Schema joins.
+*   **Agent Tools (Hands & Eyes):**
+    - [ ] **Tool: `query_performance`**: Agent runs queries to see ROI, spend, and win rates.
+    - [ ] **Tool: `manage_campaign`**: Agent calls the DMP API to pause/resume or adjust budgets.
+*   **The Optimization POC:**
+    - [ ] **Closed-Loop Test:** Agent identifies a low-ROI campaign and automatically pauses it.
 
 ### 🤖 Phase 5: Agentic Control & Interface (TODO)
 *   **Autonomous Optimization:**
@@ -90,20 +90,27 @@ Demand-Side Platform (DSP) integrated with Data Management Platform (DMP) and AI
        |    (Rust)      |                           |  (Audience)    |
        +-------+--------+                           +-------^--------+
                |                                            |
-               | (5) Streaming Data                         | (7) Optimize
+               | (5) Streaming Data                         | (8) Optimize
                v                                            |
-       +----------------+                           +-------+--------+
-       | DATA WAREHOUSE | <------------------------ |    AI AGENT    |
-       | (Arrow/Parquet)|      (6) Analyze ROI      |  (Optimizer)   |
-       +----------------+                           +----------------+
+       +----------------+      (6) SQL Query        +-------+--------+
+       | FUSION SERVER  | <------------------------ |    AI AGENT    |
+       | (DataFusion)   | ------------------------> |  (Optimizer)   |
+       +-------+--------+      (7) Analytics Data   +----------------+
+               |
+               | (Raw Parquet Files)
+               v
+       +----------------+
+       |   LAKEHOUSE    |
+       | (data/events)  |
+       +----------------+
 ```
 
 ### ❄️ Data Warehouse Flow (The Rust Lakehouse)
 To ensure sub-millisecond bidding and high-performance analytics, we use a **Lakehouse** architecture:
-1.  **Ingestion:** The **Analytics Worker** consumes events from Pub/Sub.
-2.  **Buffering:** Events are converted into **Apache Arrow RecordBatches** (Zero-copy memory format).
+1.  **Ingestion:** The **Analytics Service** consumes events.
+2.  **Buffering:** Events are converted into **Apache Arrow RecordBatches**.
 3.  **Persistence:** Batches are flushed to **Apache Parquet** files in the `data/lakehouse` directory.
-4.  **Querying:** The **AI Agent** uses **DataFusion** to run standard SQL across these Parquet files, providing warehouse-scale performance locally.
+4.  **Query Layer (The Fusion Server):** A query engine allows the Agent to read these Parquet files locally. For the current POC, this is a manual high-performance reader that exports raw data to JSON for analysis.
 
 > **Note on Storage:** For this demo, we use **Firestore** for simplicity and scale-to-zero. In a production RTB environment with <10ms requirements, **Google Cloud Memorystore (Redis)** is used for the hot path lookup between DSP and DMP.
 
@@ -127,10 +134,10 @@ This is a monorepo containing multiple components:
 The DSP receives bid requests from an exchange. It performs a sub-millisecond lookup in **Redis** (managed by the DMP) to identify the user's segments and decides whether to bid.
 
 ### 2. The Feedback Loop
-All win/loss notifications and clicks are streamed via **Pub/Sub** into **BigQuery**.
+All win/loss notifications and clicks are streamed into the **Rust Lakehouse**.
 
 ### 3. The Optimization Loop (AI Agent)
-The AI Agent queries BigQuery to analyze campaign performance (CTR, Spend, Win Rate). It then "optimizes" the campaign by updating the DMP's segments or the DSP's bidding strategy.
+The AI Agent queries the **Fusion Server** to analyze campaign performance (CTR, Spend, Win Rate). It then "optimizes" the campaign by updating the DMP's segments or the DSP's bidding strategy.
 
 ## Getting Started
 
