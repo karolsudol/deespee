@@ -70,9 +70,12 @@ Cargo.lock
 .env.*.local
 
 # --- Project Specific ---
+data/
 agents/app/proto/
 agents/tools/a2a-inspector/
 agents/tests/load_test/.results/
 .locust_env/
 .saved_chats/
 connect.lock
+
+deespee.img

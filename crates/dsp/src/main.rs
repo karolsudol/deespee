@@ -1,5 +1,7 @@
+mod clients;
+mod engine;
 mod handlers;
-mod models;
+mod render;
 
 use crate::handlers::{
     bid::{handle_bid, handle_win},

@@ -1,0 +1,27 @@
+[package]
+name = "dwh"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+# Standard Arrow & Parquet (Core Lakehouse)
+arrow.workspace = true
+arrow-json.workspace = true
+parquet.workspace = true
+datafusion.workspace = true
+iceberg.workspace = true
+
+# Query & API
+axum.workspace = true
+
+# Workspace dependencies
+tokio.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+anyhow.workspace = true
+tracing.workspace = true
+tracing-subscriber.workspace = true
+deespee-proto = { path = "../proto" }
+prost.workspace = true
+uuid.workspace = true
+chrono = { version = "0.4", features = ["serde"] }

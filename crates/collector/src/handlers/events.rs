@@ -8,7 +8,10 @@ use base64::{engine::general_purpose, Engine as _};
 use deespee_proto::deespee;
 use prost::Message;
 use serde::Deserialize;
+use std::io::Write;
+use std::net::TcpStream;
 use std::sync::Arc;
+use std::time::{SystemTime, UNIX_EPOCH};
 
 #[derive(Debug, Deserialize)]
 pub struct TrackParams {
@@ -119,6 +122,40 @@ fn log_event(params: &TrackParams, event_type: deespee::tracking_event::Interact
         "📊 TRACKING: Type={:?}, BidID={}, UserID={}, CampaignID={}",
         event_type, params.bid_id, params.user_id, params.campaign_id
     );
+
+    let event = deespee::TrackingEvent {
+        event_id: uuid::Uuid::new_v4().to_string(),
+        r#type: event_type as i32,
+        user_id: params.user_id.clone(),
+        campaign_id: params.campaign_id.clone(),
+        bid_id: params.bid_id.clone(),
+        timestamp: SystemTime::now()
+            .duration_since(UNIX_EPOCH)
+            .unwrap()
+            .as_secs(),
+        metadata: std::collections::HashMap::new(),
+    };
+
+    let mut body = Vec::new();
+    event.encode(&mut body).unwrap();
+
+    // Async notify Analytics
+    tokio::spawn(async move {
+        let analytics_host = "localhost:8004";
+        if let Ok(mut stream) = TcpStream::connect(analytics_host) {
+            let http_request = format!(
+                "POST /tracking HTTP/1.1\r\n\
+                 Host: {}\r\n\
+                 Content-Type: application/x-protobuf\r\n\
+                 Content-Length: {}\r\n\
+                 Connection: close\r\n\r\n",
+                analytics_host,
+                body.len()
+            );
+            let _ = stream.write_all(http_request.as_bytes());
+            let _ = stream.write_all(&body);
+        }
+    });
 
     // TODO: Validate the bid_id (did we actually win this?)
     // TODO: Write to a high-throughput buffer (Kafka/PubSub)
