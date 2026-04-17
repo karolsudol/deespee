@@ -1,6 +1,6 @@
 # deespee
 
-<img src="deespee.png" width="400" height="400" alt="Deespee logo">
+<img src="deespee.img" width="800" height="450" alt="Deespee logo">
 
 Demand-Side Platform (DSP) integrated with Data Management Platform (DMP) and AI Agents for Real-Time Bidding (RTB) optimization.
 
@@ -168,32 +168,17 @@ The AI Agent queries the **Fusion Server** to analyze campaign performance (CTR,
 
 ### Local Development Loop
 
-To run the full end-to-end demo locally:
+To run the full end-to-end demo locally, open separate terminal tabs for each service and run the following in order:
 
-1.  **Start local infrastructure (Pub/Sub Emulator):**
-    ```bash
-    make local-infra
-    ```
-2.  **Run the DMP service (Audience & Campaigns):**
-    ```bash
-    make dmp-run
-    ```
-3.  **Run the DSP service (Bidding Engine):**
-    ```bash
-    make dsp-run
-    ```
-4.  **Run the Collector service (Measurement):**
-    ```bash
-    make collector-run
-    ```
-5.  **Run the Ad Exchange Simulator (Traffic):**
-    ```bash
-    make run-exchange
-    ```
-6.  **Run the Agent playground (Optimization):**
-    ```bash
-    cd agents && make playground
-    ```
+| Service / Action | Command |
+| :--- | :--- |
+| **1. Local Infrastructure** (Pub/Sub Emulator) | `make local-infra` |
+| **2. DMP** (Audience & Campaigns) | `make dmp-run` |
+| **3. DSP** (Bidding Engine) | `make dsp-run` |
+| **4. Collector** (Measurement & Bot Detection) | `make collector-run` |
+| **5. DWH** (Lakehouse & Query Server) | `make dwh-run` |
+| **6. Ad Exchange** (Traffic Simulator) | `make adexchange-run` |
+| **7. AI Agent** (Optimization Playground) | `cd agents && make playground` |
 
 ### Infrastructure Management
 - **`make local-stop`**: Stop the Pub/Sub emulator.
