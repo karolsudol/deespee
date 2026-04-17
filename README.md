@@ -58,8 +58,8 @@ Demand-Side Platform (DSP) integrated with Data Management Platform (DMP) and AI
 
 ### 🚧 Phase 4: Performance Analytics & POC (Current)
 *   **The Fusion Server:**
-    - [x] **Raw Query Endpoint:** Add a query interface to the Analytics crate to read Parquet events.
-    - [ ] **DataFusion Integration:** Upgrade to a full SQL engine (DataFusion) for advanced Star Schema joins.
+    - [x] **DataFusion SQL Endpoint:** Add a query interface to the Analytics crate using DataFusion for SQL execution.
+    - [ ] **Virtual Star Schema:** Define SQL views that join raw events with campaign metadata for ROI calculation.
 *   **Agent Tools (Hands & Eyes):**
     - [ ] **Tool: `query_performance`**: Agent runs queries to see ROI, spend, and win rates.
     - [ ] **Tool: `manage_campaign`**: Agent calls the DMP API to pause/resume or adjust budgets.
@@ -110,7 +110,7 @@ To ensure sub-millisecond bidding and high-performance analytics, we use a **Lak
 1.  **Ingestion:** The **Analytics Service** consumes events.
 2.  **Buffering:** Events are converted into **Apache Arrow RecordBatches**.
 3.  **Persistence:** Batches are flushed to **Apache Parquet** files in the `data/lakehouse` directory.
-4.  **Query Layer (The Fusion Server):** A query engine allows the Agent to read these Parquet files locally. For the current POC, this is a manual high-performance reader that exports raw data to JSON for analysis.
+4.  **Query Layer (The Fusion Server):** A dedicated query engine using **DataFusion** allows the Agent to run standard SQL across these Parquet files locally.
 
 > **Note on Storage:** For this demo, we use **Firestore** for simplicity and scale-to-zero. In a production RTB environment with <10ms requirements, **Google Cloud Memorystore (Redis)** is used for the hot path lookup between DSP and DMP.
 

@@ -1,6 +1,5 @@
 mod handlers;
 mod models;
-mod reader;
 mod storage;
 
 use crate::handlers::{
@@ -10,6 +9,7 @@ use crate::handlers::{
 use crate::models::{events_to_record_batch, UnifiedEvent};
 use crate::storage::LakehouseStorage;
 use axum::{routing::post, Router};
+use datafusion::prelude::*;
 use std::net::SocketAddr;
 use std::sync::{Arc, Mutex};
 use std::time::Duration;
@@ -18,6 +18,7 @@ pub struct AppState {
     pub buffer: Mutex<Vec<UnifiedEvent>>,
     pub storage: LakehouseStorage,
     pub base_path: String,
+    pub ctx: SessionContext,
 }
 
 #[tokio::main]
@@ -32,10 +33,16 @@ async fn main() -> anyhow::Result<()> {
         std::fs::create_dir_all(&base_path).expect("Failed to create storage directory");
     }
 
+    // Initialize DataFusion Context
+    let ctx = SessionContext::new();
+    ctx.register_parquet("fct_events", &base_path, ParquetReadOptions::default())
+        .await?;
+
     let state = Arc::new(AppState {
         buffer: Mutex::new(Vec::new()),
         storage: LakehouseStorage::new(&base_path),
         base_path,
+        ctx,
     });
 
     // Background task: Periodically flush buffer to Parquet

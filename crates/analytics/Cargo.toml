@@ -8,6 +8,7 @@ edition = "2021"
 arrow.workspace = true
 arrow-json.workspace = true
 parquet.workspace = true
+datafusion.workspace = true
 
 # Query & API
 axum.workspace = true

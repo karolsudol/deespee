@@ -1,4 +1,3 @@
-use crate::reader::LakehouseReader;
 use crate::AppState;
 use axum::{extract::State, http::StatusCode, response::IntoResponse, Json};
 use serde::Deserialize;
@@ -6,23 +5,39 @@ use std::sync::Arc;
 
 #[derive(Deserialize)]
 pub struct QueryRequest {
-    #[allow(dead_code)]
     pub sql: String,
 }
 
 pub async fn handle_query(
     State(state): State<Arc<AppState>>,
-    Json(_payload): Json<QueryRequest>,
+    Json(payload): Json<QueryRequest>,
 ) -> impl IntoResponse {
-    println!("🔎 Manual Query: Reading all raw events from Parquet...");
-    let reader = LakehouseReader::new(&state.base_path);
+    println!("🔎 Executing SQL: {}", payload.sql);
 
-    match reader.read_all_events() {
-        Ok(results) => (StatusCode::OK, Json(results)).into_response(),
-        Err(e) => (
-            StatusCode::INTERNAL_SERVER_ERROR,
-            format!("Failed to read analytics: {}", e),
-        )
-            .into_response(),
+    match state.ctx.sql(&payload.sql).await {
+        Ok(df) => match df.collect().await {
+            Ok(batches) => {
+                let mut results = Vec::new();
+                for batch in batches {
+                    let mut buf = Vec::new();
+                    let mut writer = arrow_json::ArrayWriter::new(&mut buf);
+                    writer.write(&batch).unwrap();
+                    writer.finish().unwrap();
+
+                    if let Ok(json_val) = serde_json::from_slice::<serde_json::Value>(&buf) {
+                        if let Some(arr) = json_val.as_array() {
+                            results.extend(arr.clone());
+                        }
+                    }
+                }
+                (StatusCode::OK, Json(results)).into_response()
+            }
+            Err(e) => (
+                StatusCode::INTERNAL_SERVER_ERROR,
+                format!("Execution Error: {}", e),
+            )
+                .into_response(),
+        },
+        Err(e) => (StatusCode::BAD_REQUEST, format!("SQL Error: {}", e)).into_response(),
     }
 }
