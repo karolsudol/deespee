@@ -4,7 +4,7 @@ members = [
     "crates/dsp",
     "crates/dmp",
     "crates/proto",
-    "crates/adexchange", "crates/collector", "crates/analytics",
+    "crates/adexchange", "crates/collector", "crates/dwh",
 ]
 
 [workspace.dependencies]

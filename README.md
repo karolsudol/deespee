@@ -50,21 +50,21 @@ Demand-Side Platform (DSP) integrated with Data Management Platform (DMP) and AI
 *   **Advanced Targeting:** Geo/IP, Contextual (IAB Categories), and Audience Segment matching.
 *   **Audience Memory (DMP):** Real-time user profile store with frequency capping and segment management.
 *   **Measurement & Verification:** Tracking pixels, Viewability (`IntersectionObserver`), and Bot Detection.
-*   **Rust Lakehouse (Analytics):**
+*   **Rust Lakehouse (DWH):**
     *   **Unified Ingestion:** Centralized collection of Wins, Impressions, Clicks, and Conversions.
     *   **Real-Time Buffering:** Memory-resident buffering of events with background Parquet flushing.
     *   **Deduplication:** Automatic filtering of duplicate pixel pings and event notifications.
-    *   **Parquet Storage:** Optimized columnar storage in `data/lakehouse` for efficient local querying.
+    *   **SQL Query Layer:** DataFusion-powered SQL interface for the AI Agent.
 
 ### 🚧 Phase 4: Performance Analytics & POC (Current)
-*   **The Fusion Server:**
-    - [x] **DataFusion SQL Endpoint:** Add a query interface to the Analytics crate using DataFusion for SQL execution.
-    - [ ] **Virtual Star Schema:** Define SQL views that join raw events with campaign metadata for ROI calculation.
+*   **The Fusion Server (DWH):**
+    - [x] **DataFusion SQL Endpoint:** Query interface for SQL execution against Parquet events.
+    - [ ] **Star Schema Views:** SQL views joining events with campaign dimensions for ROI calculation.
 *   **Agent Tools (Hands & Eyes):**
-    - [ ] **Tool: `query_performance`**: Agent runs queries to see ROI, spend, and win rates.
+    - [ ] **Tool: `query_performance`**: Agent runs SQL to see ROI, spend, and win rates via DWH.
     - [ ] **Tool: `manage_campaign`**: Agent calls the DMP API to pause/resume or adjust budgets.
 *   **The Optimization POC:**
-    - [ ] **Closed-Loop Test:** Agent identifies a low-ROI campaign and automatically pauses it.
+    - [ ] **Closed-Loop Test:** Agent identifies a low-ROI campaign via DWH and automatically pauses it via DMP.
 
 ### 🤖 Phase 5: Agentic Control & Interface (TODO)
 *   **Autonomous Optimization:**
@@ -107,7 +107,7 @@ Demand-Side Platform (DSP) integrated with Data Management Platform (DMP) and AI
 
 ### ❄️ Data Warehouse Flow (The Rust Lakehouse)
 To ensure sub-millisecond bidding and high-performance analytics, we use a **Lakehouse** architecture:
-1.  **Ingestion:** The **Analytics Service** consumes events.
+1.  **Ingestion:** The **DWH Service** consumes events.
 2.  **Buffering:** Events are converted into **Apache Arrow RecordBatches**.
 3.  **Persistence:** Batches are flushed to **Apache Parquet** files in the `data/lakehouse` directory.
 4.  **Query Layer (The Fusion Server):** A dedicated query engine using **DataFusion** allows the Agent to run standard SQL across these Parquet files locally.
@@ -122,7 +122,7 @@ This is a monorepo containing multiple components:
 - **`crates/dsp`**: High-performance Demand-Side Platform (Rust).
 - **`crates/dmp`**: Data Management Platform (Rust).
 - **`crates/collector`**: Real-time Measurement & Verification (Rust). Handles pixel tracking, bot detection, and win-reconciliation.
-- **`crates/analytics`**: Lakehouse Ingestion Engine (Rust). Buffers and persists all events into Parquet for the AI Agent.
+- **`crates/dwh`**: Data Warehouse & Fusion Server (Rust). Persists events into Parquet and provides a DataFusion SQL interface for the Agent.
 - **`crates/adexchange`**: Ad Exchange Simulator (Rust).
 - **`crates/proto`**: Shared Protobuf schemas and generated code.
 - **`shared/`**: Source Protobuf schemas.
