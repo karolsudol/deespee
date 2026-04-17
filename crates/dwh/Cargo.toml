@@ -9,6 +9,7 @@ arrow.workspace = true
 arrow-json.workspace = true
 parquet.workspace = true
 datafusion.workspace = true
+iceberg.workspace = true
 
 # Query & API
 axum.workspace = true
@@ -22,5 +23,5 @@ tracing.workspace = true
 tracing-subscriber.workspace = true
 deespee-proto = { path = "../proto" }
 prost.workspace = true
-uuid = { version = "1.8", features = ["v4"] }
+uuid.workspace = true
 chrono = { version = "0.4", features = ["serde"] }

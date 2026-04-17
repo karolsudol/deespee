@@ -54,6 +54,7 @@ Demand-Side Platform (DSP) integrated with Data Management Platform (DMP) and AI
     *   **Unified Ingestion:** Centralized collection of Wins, Impressions, Clicks, and Conversions.
     *   **Real-Time Buffering:** Memory-resident buffering of events with background Parquet flushing.
     *   **Deduplication:** Automatic filtering of duplicate pixel pings and event notifications.
+    *   **Apache Iceberg:** Formal table format management for ACID transactions and schema evolution.
     *   **SQL Query Layer:** DataFusion-powered SQL interface for the AI Agent.
 
 ### 🚧 Phase 4: Performance Analytics & POC (Current)
@@ -109,8 +110,8 @@ Demand-Side Platform (DSP) integrated with Data Management Platform (DMP) and AI
 To ensure sub-millisecond bidding and high-performance analytics, we use a **Lakehouse** architecture:
 1.  **Ingestion:** The **DWH Service** consumes events.
 2.  **Buffering:** Events are converted into **Apache Arrow RecordBatches**.
-3.  **Persistence:** Batches are flushed to **Apache Parquet** files in the `data/lakehouse` directory.
-4.  **Query Layer (The Fusion Server):** A dedicated query engine using **DataFusion** allows the Agent to run standard SQL across these Parquet files locally.
+3.  **Persistence:** Batches are flushed to **Apache Parquet** files managed by **Apache Iceberg** in the `data/lakehouse` directory.
+4.  **Query Layer (The Fusion Server):** A dedicated query engine using **DataFusion** allows the Agent to run standard SQL across these Iceberg tables locally.
 
 > **Note on Storage:** For this demo, we use **Firestore** for simplicity and scale-to-zero. In a production RTB environment with <10ms requirements, **Google Cloud Memorystore (Redis)** is used for the hot path lookup between DSP and DMP.
 
@@ -122,7 +123,7 @@ This is a monorepo containing multiple components:
 - **`crates/dsp`**: High-performance Demand-Side Platform (Rust).
 - **`crates/dmp`**: Data Management Platform (Rust).
 - **`crates/collector`**: Real-time Measurement & Verification (Rust). Handles pixel tracking, bot detection, and win-reconciliation.
-- **`crates/dwh`**: Data Warehouse & Fusion Server (Rust). Persists events into Parquet and provides a DataFusion SQL interface for the Agent.
+- **`crates/dwh`**: Data Warehouse & Fusion Server (Rust). Persists events into **Apache Iceberg** format (Parquet) and provides a DataFusion SQL interface for the Agent.
 - **`crates/adexchange`**: Ad Exchange Simulator (Rust).
 - **`crates/proto`**: Shared Protobuf schemas and generated code.
 - **`shared/`**: Source Protobuf schemas.

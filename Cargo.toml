@@ -11,9 +11,10 @@ members = [
 axum = "=0.7.5"
 tokio = { version = "=1.52.1", features = ["full"] }
 prost = "=0.13.4"
-serde = { version = "=1.0.220", features = ["derive"] }
-serde_json = "=1.0.140"
+serde = { version = "=1.0.228", features = ["derive"] }
+serde_json = "=1.0.149"
 anyhow = "=1.0.81"
+uuid = { version = "=1.21.0", features = ["v4"] }
 tracing = "=0.1.40"
 tracing-subscriber = "=0.3.18"
 base64 = "=0.22.1"
@@ -21,6 +22,7 @@ indexmap = "=2.14.0"
 prost-build = "=0.13.4"
 reqwest = { version = "0.12", features = ["json"] }
 datafusion = "=53.1.0"
+iceberg = "=0.9.0"
 arrow = "=58.0.0"
 arrow-json = "=58.0.0"
 parquet = "=58.0.0"
