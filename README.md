@@ -192,7 +192,7 @@ To run the full end-to-end demo locally, open separate terminal tabs for each se
 
 Once all services are running, you can observe the following:
 
-1.  **Bidding Flow:** The Go Simulator sends a **Binary Protobuf** `BidRequest` to the Rust DSP every 5 seconds.
+1.  **Bidding Flow:** The **Rust Ad Exchange Simulator** sends a **Binary Protobuf** `BidRequest` to the Rust DSP every 2 seconds.
 2.  **DSP Decision:** The Rust DSP decodes the request, applies bidding logic, and responds with a binary `BidResponse`.
 3.  **Agent Interaction:** In the Agent Playground, you can ask the AI Agent to "Trigger a DSP request". The Agent will publish a Protobuf `AgentRequest` to the local Pub/Sub emulator, which the DSP is configured to receive.
 4.  **Monitoring Reconciliation:** You can view real-time discrepancy stats (Wins vs. Impressions) by visiting the Measurement Collector's report:
