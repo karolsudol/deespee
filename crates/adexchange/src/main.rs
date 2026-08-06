@@ -33,7 +33,7 @@ fn send_bid_request(host: &str) -> anyhow::Result<()> {
     let req = deespee::BidRequest {
         id: format!("req-{}", ts),
         user: Some(deespee::User {
-            id: user_id,
+            id: user_id.clone(),
             segments: vec!["auto-shopper".to_string()],
         }),
         device: Some(deespee::Device {
@@ -108,14 +108,14 @@ fn send_bid_request(host: &str) -> anyhow::Result<()> {
                 }
 
                 // Simulate an impression ping to Collector
-                if let Err(e) = trigger_pixel_ping("i", &req.id, user_id) {
+                if let Err(e) = trigger_pixel_ping("i", &req.id, &user_id) {
                     eprintln!("❌ Error triggering impression ping: {}", e);
                 }
 
                 // 10% chance of a click
                 if ts % 10 == 0 {
                     println!("🖱️ Simulating CLICK for {}...", req.id);
-                    if let Err(e) = trigger_pixel_ping("c", &req.id, user_id) {
+                    if let Err(e) = trigger_pixel_ping("c", &req.id, &user_id) {
                         eprintln!("❌ Error triggering click ping: {}", e);
                     }
                 }

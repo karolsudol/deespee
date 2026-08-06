@@ -39,6 +39,12 @@ repos:
         language: system
         types: [ rust ]
         pass_filenames: false
+      - id: cargo-check
+        name: cargo-check
+        entry: bash -c "cargo check --workspace"
+        language: system
+        types: [ rust ]
+        pass_filenames: false
       - id: go-fmt
         name: go-fmt
         entry: bash -c "cd adexchange && go fmt ./..."

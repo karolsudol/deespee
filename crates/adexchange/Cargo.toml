@@ -9,4 +9,4 @@ anyhow = "=1.0.81"
 tracing = "=0.1.40"
 tracing-subscriber = "=0.3.18"
 deespee-proto = { path = "../proto" }
-# NO external HTTP libraries to avoid icu dependencies
+reqwest = { workspace = true, features = ["blocking"] }

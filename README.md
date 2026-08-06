@@ -1,6 +1,13 @@
 # deespee
 
-<img src="deespee.img" width="800" height="450" alt="Deespee logo">
+```text
+      _
+   __| | ___  ___  ___  _ __   ___  ___
+  / _` |/ _ \/ _ \/ __|| '_ \ / _ \/ _ \
+ | (_| |  __/  __/\__ \| |_) |  __/  __/
+  \__,_|\___|\___||___/| .__/ \___|\___|
+                       |_|
+```
 
 Demand-Side Platform (DSP) integrated with Data Management Platform (DMP) and AI Agents for Real-Time Bidding (RTB) optimization.
 
